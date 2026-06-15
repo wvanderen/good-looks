@@ -186,6 +186,36 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
                 type="hidden"
                 data-address-longitude
               />
+              <input
+                id="weather-summary"
+                name="weather-summary"
+                type="hidden"
+                data-weather-summary
+              />
+              <input
+                id="weather-temperature"
+                name="weather-temperature"
+                type="hidden"
+                data-weather-temperature
+              />
+              <input
+                id="weather-wind"
+                name="weather-wind"
+                type="hidden"
+                data-weather-wind
+              />
+              <input
+                id="weather-precipitation"
+                name="weather-precipitation"
+                type="hidden"
+                data-weather-precipitation
+              />
+              <input
+                id="weather-source"
+                name="weather-source"
+                type="hidden"
+                data-weather-source
+              />
 
               <div
                 class="usa-alert usa-alert--info usa-alert--slim margin-top-3"
@@ -196,6 +226,17 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
               >
                 <div class="usa-alert__body">
                   <p class="usa-alert__text" data-address-lookup-message></p>
+                </div>
+              </div>
+              <div
+                class="usa-alert usa-alert--info usa-alert--slim margin-top-2"
+                data-weather-lookup-status
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                <div class="usa-alert__body">
+                  <p class="usa-alert__text" data-weather-lookup-message></p>
                 </div>
               </div>
             </fieldset>
@@ -348,6 +389,12 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       const addressLookupMessage = journalForm.querySelector(
         "[data-address-lookup-message]",
       );
+      const weatherLookupStatus = journalForm.querySelector(
+        "[data-weather-lookup-status]",
+      );
+      const weatherLookupMessage = journalForm.querySelector(
+        "[data-weather-lookup-message]",
+      );
       const continueRideButton = journalForm.querySelector("[data-continue-ride]");
       const addressLabelInput = journalForm.querySelector("[data-address-label]");
       const addressLatitudeInput = journalForm.querySelector(
@@ -356,6 +403,17 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       const addressLongitudeInput = journalForm.querySelector(
         "[data-address-longitude]",
       );
+      const weatherSummaryInput = journalForm.querySelector(
+        "[data-weather-summary]",
+      );
+      const weatherTemperatureInput = journalForm.querySelector(
+        "[data-weather-temperature]",
+      );
+      const weatherWindInput = journalForm.querySelector("[data-weather-wind]");
+      const weatherPrecipitationInput = journalForm.querySelector(
+        "[data-weather-precipitation]",
+      );
+      const weatherSourceInput = journalForm.querySelector("[data-weather-source]");
       const formControls = Array.from(
         journalForm.querySelectorAll("input, select, textarea"),
       ).filter(
@@ -510,6 +568,22 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         addressLookupStatus.removeAttribute("hidden");
       };
 
+      const setWeatherLookupStatus = (variant, message) => {
+        if (!weatherLookupStatus || !weatherLookupMessage) {
+          return;
+        }
+
+        weatherLookupStatus.classList.remove(
+          "usa-alert--error",
+          "usa-alert--info",
+          "usa-alert--success",
+          "usa-alert--warning",
+        );
+        weatherLookupStatus.classList.add(`usa-alert--${variant}`);
+        weatherLookupMessage.textContent = message;
+        weatherLookupStatus.removeAttribute("hidden");
+      };
+
       const clearAddressLookupStatus = () => {
         addressLookupStatus?.setAttribute("hidden", "");
         if (addressLookupMessage) {
@@ -517,17 +591,33 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
       };
 
+      const clearWeatherLookupStatus = () => {
+        weatherLookupStatus?.setAttribute("hidden", "");
+        if (weatherLookupMessage) {
+          weatherLookupMessage.textContent = "";
+        }
+      };
+
       const setLookupLoading = (isLoading) => {
         if (continueRideButton instanceof HTMLButtonElement) {
           continueRideButton.disabled = isLoading;
-          continueRideButton.textContent = isLoading ? "Looking up address..." : "Continue";
+          continueRideButton.textContent = isLoading ? "Loading details..." : "Continue";
         }
+      };
+
+      const clearWeatherLookupResult = () => {
+        setHiddenValue(weatherSummaryInput, "");
+        setHiddenValue(weatherTemperatureInput, "");
+        setHiddenValue(weatherWindInput, "");
+        setHiddenValue(weatherPrecipitationInput, "");
+        setHiddenValue(weatherSourceInput, "");
       };
 
       const clearAddressLookupResult = () => {
         setHiddenValue(addressLabelInput, "");
         setHiddenValue(addressLatitudeInput, "");
         setHiddenValue(addressLongitudeInput, "");
+        clearWeatherLookupResult();
       };
 
       const buildOneLineAddress = () =>
@@ -583,6 +673,86 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
               : "Address lookup is unavailable. Try again in a moment.";
           setAddressLookupStatus("error", message);
           return false;
+        } finally {
+          setLookupLoading(false);
+        }
+      };
+
+      const formatWeatherTemperature = (period) => {
+        if (
+          typeof period.temperature === "number" &&
+          typeof period.temperatureUnit === "string"
+        ) {
+          return `${period.temperature} °${period.temperatureUnit}`;
+        }
+
+        return "";
+      };
+
+      const formatWeatherWind = (period) =>
+        [period.windSpeed, period.windDirection]
+          .filter((value) => typeof value === "string" && value)
+          .join(" ");
+
+      const formatWeatherPrecipitation = (period) =>
+        typeof period.precipitationChance === "number"
+          ? `${period.precipitationChance}% chance`
+          : "";
+
+      const lookupWeatherForecast = async () => {
+        clearWeatherLookupResult();
+        setWeatherLookupStatus("info", "Loading the nearest NWS forecast...");
+        setLookupLoading(true);
+
+        try {
+          const latitude = getTextValue("address-latitude");
+          const longitude = getTextValue("address-longitude");
+          const response = await fetch(
+            `/api/weather-forecast.json?latitude=${encodeURIComponent(
+              latitude,
+            )}&longitude=${encodeURIComponent(longitude)}`,
+            {
+              headers: {
+                accept: "application/json",
+              },
+            },
+          );
+          const data = await response.json();
+          const period = data.period;
+
+          if (!response.ok || typeof period !== "object" || period === null) {
+            throw new Error(
+              typeof data.error === "string"
+                ? data.error
+                : "Weather forecast is unavailable. Try again in a moment.",
+            );
+          }
+
+          const summary =
+            typeof period.shortForecast === "string"
+              ? period.shortForecast
+              : "Forecast loaded";
+          const temperature = formatWeatherTemperature(period);
+          const wind = formatWeatherWind(period);
+          const precipitation = formatWeatherPrecipitation(period);
+          const source =
+            typeof data.source === "string" ? data.source : "National Weather Service";
+
+          setHiddenValue(weatherSummaryInput, summary);
+          setHiddenValue(weatherTemperatureInput, temperature);
+          setHiddenValue(weatherWindInput, wind);
+          setHiddenValue(weatherPrecipitationInput, precipitation);
+          setHiddenValue(weatherSourceInput, source);
+          setWeatherLookupStatus(
+            "success",
+            `NWS forecast loaded: ${[temperature, summary].filter(Boolean).join(", ")}`,
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Weather forecast is unavailable. Try again in a moment.";
+          setWeatherLookupStatus("warning", message);
         } finally {
           setLookupLoading(false);
         }
@@ -651,6 +821,14 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ["Distance", formatDistance(getTextValue("ride-distance"))],
         ["Duration", formatDuration(getTextValue("ride-duration"))],
         ["Effort", getEffortValue()],
+        ["Forecast", getTextValue("weather-summary") || "Unavailable"],
+        ["Temperature", getTextValue("weather-temperature") || "Unavailable"],
+        ["Wind", getTextValue("weather-wind") || "Unavailable"],
+        [
+          "Precipitation",
+          getTextValue("weather-precipitation") || "Unavailable",
+        ],
+        ["Weather source", getTextValue("weather-source") || "Unavailable"],
         ["Weather notes", getTextValue("weather-notes") || "None entered"],
         ["Ride notes", getTextValue("ride-notes") || "None entered"],
       ];
@@ -771,6 +949,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           const didLookupAddress = await lookupAddress();
 
           if (didLookupAddress) {
+            await lookupWeatherForecast();
             showReview();
           }
           return;
@@ -791,6 +970,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           if (addressFieldNames.has(event.target.name)) {
             clearAddressLookupResult();
             clearAddressLookupStatus();
+            clearWeatherLookupStatus();
           }
         }
       });
@@ -805,6 +985,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           if (addressFieldNames.has(event.target.name)) {
             clearAddressLookupResult();
             clearAddressLookupStatus();
+            clearWeatherLookupStatus();
           }
         }
       });
