@@ -76,3 +76,14 @@
 {"ts":"2026-06-15T09:27:47.524855-05:00","cmd":"approve","session":"ses_0c44a9","ok":false,"dur_ms":61,"err":"--record-only requires review_policy_mode=delegated"}
 {"ts":"2026-06-15T09:27:53.11961-05:00","cmd":"approve","flags":{"reason":"reviewed routes/navigation/accessibility markers; build verified"},"session":"ses_0c44a9","ok":true,"dur_ms":86}
 {"ts":"2026-06-15T09:28:04.177809-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_0c44a9","ok":true,"dur_ms":87}
+{"ts":"2026-06-15T10:01:12.225352-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_fdc356","ok":true,"dur_ms":59}
+{"ts":"2026-06-15T10:01:19.996281-05:00","cmd":"start","session":"ses_fdc356","ok":true,"dur_ms":133}
+{"ts":"2026-06-15T10:02:22.628352-05:00","cmd":"log","session":"ses_fdc356","ok":true,"dur_ms":81}
+{"ts":"2026-06-15T10:04:11.946035-05:00","cmd":"handoff","session":"ses_fdc356","ok":true,"dur_ms":152}
+{"ts":"2026-06-15T10:04:15.298728-05:00","cmd":"review","session":"ses_fdc356","ok":true,"dur_ms":81}
+{"ts":"2026-06-15T10:04:40.852605-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_bb6b8c","ok":true,"dur_ms":82}
+{"ts":"2026-06-15T10:04:47.306918-05:00","cmd":"show","session":"ses_bb6b8c","ok":true,"dur_ms":96}
+{"ts":"2026-06-15T10:04:47.353295-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_bb6b8c","ok":true,"dur_ms":70}
+{"ts":"2026-06-15T10:04:53.118478-05:00","cmd":"approve","session":"ses_bb6b8c","ok":false,"dur_ms":62,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:05:04.840491-05:00","cmd":"approve","flags":{"reason":"Independent review: ride journal form meets USWDS pattern and accessibility acceptance criteria. All fields are labeled, grouped sections use fieldsets/legends, required fields are visible and programmatic, and native controls support keyboard operation."},"session":"ses_bb6b8c","ok":true,"dur_ms":101}
+{"ts":"2026-06-15T10:05:13.840482-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_bb6b8c","ok":true,"dur_ms":60}
