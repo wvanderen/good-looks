@@ -8,6 +8,7 @@ amplify_outputs.json
 amplifyconfiguration.json
 .amplify/
 npm-debug.log*
+.npm/
 .todos/
 .sidecar/
 .sidecar-agent
