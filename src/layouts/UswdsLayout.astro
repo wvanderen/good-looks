@@ -11,6 +11,17 @@ const {
   title,
   description = "Ride Conditions is an accessible ride journal built with Astro and USWDS.",
 } = Astro.props;
+
+const navItems = [
+  { href: "/", label: "Home" },
+  { href: "/journal/", label: "Journal" },
+  { href: "/rides/", label: "Saved rides" },
+  { href: "/docs/", label: "Docs" },
+];
+
+const normalizePath = (path: string) =>
+  path === "/" ? path : path.replace(/\/$/, "");
+const currentPath = normalizePath(Astro.url.pathname);
 ---
 
 <!doctype html>
@@ -32,6 +43,28 @@ const {
             <a href="/" title="Ride Conditions home">Ride Conditions</a>
           </div>
         </div>
+        <nav aria-label="Primary navigation">
+          <ul class="usa-nav__primary usa-accordion app-primary-nav">
+            {
+              navItems.map((item) => {
+                const itemPath = normalizePath(item.href);
+                const isCurrent = currentPath === itemPath;
+
+                return (
+                  <li class="usa-nav__primary-item">
+                    <a
+                      class="usa-nav__link"
+                      href={item.href}
+                      aria-current={isCurrent ? "page" : undefined}
+                    >
+                      <span>{item.label}</span>
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </nav>
       </div>
     </header>
 

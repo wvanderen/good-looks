@@ -11,6 +11,18 @@ body {
   text-decoration: none;
 }
 
+.app-primary-nav {
+  margin: 0;
+}
+
+.app-primary-nav .usa-nav__link[aria-current="page"] span {
+  color: #005ea8;
+}
+
+.app-primary-nav .usa-nav__link[aria-current="page"] span::after {
+  background-color: #005ea8;
+}
+
 .app-intro {
   border-top: 1px solid #dfe1e2;
 }
