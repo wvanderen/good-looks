@@ -167,6 +167,37 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
                 pattern="[0-9]{5}(-[0-9]{4})?"
                 required
               />
+
+              <input
+                id="address-label"
+                name="address-label"
+                type="hidden"
+                data-address-label
+              />
+              <input
+                id="address-latitude"
+                name="address-latitude"
+                type="hidden"
+                data-address-latitude
+              />
+              <input
+                id="address-longitude"
+                name="address-longitude"
+                type="hidden"
+                data-address-longitude
+              />
+
+              <div
+                class="usa-alert usa-alert--info usa-alert--slim margin-top-3"
+                data-address-lookup-status
+                role="status"
+                aria-live="polite"
+                hidden
+              >
+                <div class="usa-alert__body">
+                  <p class="usa-alert__text" data-address-lookup-message></p>
+                </div>
+              </div>
             </fieldset>
 
             <fieldset class="usa-fieldset margin-top-4">
@@ -264,7 +295,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
               ></textarea>
             </fieldset>
 
-            <button class="usa-button margin-top-4" type="submit">
+            <button class="usa-button margin-top-4" type="submit" data-continue-ride>
               Continue
             </button>
           </form>
@@ -311,6 +342,20 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         "#journal-validation-summary",
       );
       const validationList = journalForm.querySelector("#journal-validation-list");
+      const addressLookupStatus = journalForm.querySelector(
+        "[data-address-lookup-status]",
+      );
+      const addressLookupMessage = journalForm.querySelector(
+        "[data-address-lookup-message]",
+      );
+      const continueRideButton = journalForm.querySelector("[data-continue-ride]");
+      const addressLabelInput = journalForm.querySelector("[data-address-label]");
+      const addressLatitudeInput = journalForm.querySelector(
+        "[data-address-latitude]",
+      );
+      const addressLongitudeInput = journalForm.querySelector(
+        "[data-address-longitude]",
+      );
       const formControls = Array.from(
         journalForm.querySelectorAll("input, select, textarea"),
       ).filter(
@@ -346,6 +391,13 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ["easy", "Easy"],
         ["moderate", "Moderate"],
         ["hard", "Hard"],
+      ]);
+
+      const addressFieldNames = new Set([
+        "street-address",
+        "address-city",
+        "address-state",
+        "address-zip",
       ]);
 
       const originalDescriptions = new Map(
@@ -437,6 +489,105 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         return "";
       };
 
+      const setHiddenValue = (control, value) => {
+        if (control instanceof HTMLInputElement) {
+          control.value = value;
+        }
+      };
+
+      const setAddressLookupStatus = (variant, message) => {
+        if (!addressLookupStatus || !addressLookupMessage) {
+          return;
+        }
+
+        addressLookupStatus.classList.remove(
+          "usa-alert--error",
+          "usa-alert--info",
+          "usa-alert--success",
+        );
+        addressLookupStatus.classList.add(`usa-alert--${variant}`);
+        addressLookupMessage.textContent = message;
+        addressLookupStatus.removeAttribute("hidden");
+      };
+
+      const clearAddressLookupStatus = () => {
+        addressLookupStatus?.setAttribute("hidden", "");
+        if (addressLookupMessage) {
+          addressLookupMessage.textContent = "";
+        }
+      };
+
+      const setLookupLoading = (isLoading) => {
+        if (continueRideButton instanceof HTMLButtonElement) {
+          continueRideButton.disabled = isLoading;
+          continueRideButton.textContent = isLoading ? "Looking up address..." : "Continue";
+        }
+      };
+
+      const clearAddressLookupResult = () => {
+        setHiddenValue(addressLabelInput, "");
+        setHiddenValue(addressLatitudeInput, "");
+        setHiddenValue(addressLongitudeInput, "");
+      };
+
+      const buildOneLineAddress = () =>
+        [
+          getTextValue("street-address"),
+          getTextValue("address-city"),
+          getTextValue("address-state"),
+          getTextValue("address-zip"),
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+      const lookupAddress = async () => {
+        clearAddressLookupResult();
+        setAddressLookupStatus("info", "Looking up the starting address...");
+        setLookupLoading(true);
+
+        try {
+          const response = await fetch(
+            `/api/address-lookup.json?address=${encodeURIComponent(
+              buildOneLineAddress(),
+            )}`,
+            {
+              headers: {
+                accept: "application/json",
+              },
+            },
+          );
+          const data = await response.json();
+
+          if (
+            !response.ok ||
+            typeof data.addressLabel !== "string" ||
+            typeof data.latitude !== "number" ||
+            typeof data.longitude !== "number"
+          ) {
+            throw new Error(
+              typeof data.error === "string"
+                ? data.error
+                : "We could not find coordinates for that address.",
+            );
+          }
+
+          setHiddenValue(addressLabelInput, data.addressLabel);
+          setHiddenValue(addressLatitudeInput, String(data.latitude));
+          setHiddenValue(addressLongitudeInput, String(data.longitude));
+          setAddressLookupStatus("success", `Address matched: ${data.addressLabel}`);
+          return true;
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Address lookup is unavailable. Try again in a moment.";
+          setAddressLookupStatus("error", message);
+          return false;
+        } finally {
+          setLookupLoading(false);
+        }
+      };
+
       const getEffortValue = () => {
         const checkedEffort = journalForm.querySelector(
           'input[name="effort"]:checked',
@@ -491,7 +642,9 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 
       const getReviewItems = () => [
         ["Ride date", formatDate(getTextValue("ride-date"))],
-        ["Starting street address", getTextValue("street-address")],
+        ["Starting address", getTextValue("address-label")],
+        ["Latitude", getTextValue("address-latitude")],
+        ["Longitude", getTextValue("address-longitude")],
         ["City", getTextValue("address-city")],
         ["State", getTextValue("address-state")],
         ["ZIP code", getTextValue("address-zip")],
@@ -604,7 +757,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         validationSummary.focus();
       };
 
-      journalForm.addEventListener("submit", (event) => {
+      journalForm.addEventListener("submit", async (event) => {
         const invalidControls = getInvalidControls();
 
         if (invalidControls.length === 0) {
@@ -615,7 +768,11 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           }
 
           event.preventDefault();
-          showReview();
+          const didLookupAddress = await lookupAddress();
+
+          if (didLookupAddress) {
+            showReview();
+          }
           return;
         }
 
@@ -630,6 +787,11 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           event.target instanceof HTMLTextAreaElement
         ) {
           clearErrors();
+
+          if (addressFieldNames.has(event.target.name)) {
+            clearAddressLookupResult();
+            clearAddressLookupStatus();
+          }
         }
       });
 
@@ -639,6 +801,11 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           event.target instanceof HTMLInputElement
         ) {
           clearErrors();
+
+          if (addressFieldNames.has(event.target.name)) {
+            clearAddressLookupResult();
+            clearAddressLookupStatus();
+          }
         }
       });
 
