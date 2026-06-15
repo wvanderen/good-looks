@@ -1,6 +1,26 @@
 import { a, defineData, type ClientSchema } from "@aws-amplify/backend";
 
+import { addressLookup } from "../functions/addressLookup/resource";
+import { weatherForecast } from "../functions/weatherForecast/resource";
+
 const schema = a.schema({
+  lookupAddress: a
+    .query()
+    .arguments({
+      address: a.string().required(),
+    })
+    .returns(a.string().required())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(addressLookup)),
+  lookupWeatherForecast: a
+    .query()
+    .arguments({
+      latitude: a.string().required(),
+      longitude: a.string().required(),
+    })
+    .returns(a.string().required())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(weatherForecast)),
   RideEntry: a
     .model({
       rideDate: a.date().required(),

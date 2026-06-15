@@ -371,6 +371,8 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
   </section>
 
   <script>
+    import { amplifyClient } from "../lib/amplifyClient";
+
     const journalForm = document.querySelector("[data-journal-form]");
     const journalReview = document.querySelector("[data-journal-review]");
     const reviewHeading = document.querySelector("#journal-review-heading");
@@ -630,26 +632,45 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           .filter(Boolean)
           .join(", ");
 
+      const parseLookupPayload = (payload) => {
+        if (typeof payload !== "string") {
+          throw new Error("The lookup service returned an invalid response.");
+        }
+
+        const parsed = JSON.parse(payload);
+        const statusCode =
+          typeof parsed.statusCode === "number" ? parsed.statusCode : 502;
+        const body =
+          typeof parsed.body === "object" && parsed.body !== null
+            ? parsed.body
+            : {};
+
+        return {
+          ok: statusCode >= 200 && statusCode < 300,
+          statusCode,
+          body,
+        };
+      };
+
       const lookupAddress = async () => {
         clearAddressLookupResult();
         setAddressLookupStatus("info", "Looking up the starting address...");
         setLookupLoading(true);
 
         try {
-          const response = await fetch(
-            `/api/address-lookup.json?address=${encodeURIComponent(
-              buildOneLineAddress(),
-            )}`,
-            {
-              headers: {
-                accept: "application/json",
-              },
-            },
-          );
-          const data = await response.json();
+          const response = await amplifyClient.queries.lookupAddress({
+            address: buildOneLineAddress(),
+          });
+
+          if (response.errors?.length) {
+            throw new Error("Address lookup is unavailable. Try again in a moment.");
+          }
+
+          const result = parseLookupPayload(response.data);
+          const data = result.body;
 
           if (
-            !response.ok ||
+            !result.ok ||
             typeof data.addressLabel !== "string" ||
             typeof data.latitude !== "number" ||
             typeof data.longitude !== "number"
@@ -707,20 +728,20 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         try {
           const latitude = getTextValue("address-latitude");
           const longitude = getTextValue("address-longitude");
-          const response = await fetch(
-            `/api/weather-forecast.json?latitude=${encodeURIComponent(
-              latitude,
-            )}&longitude=${encodeURIComponent(longitude)}`,
-            {
-              headers: {
-                accept: "application/json",
-              },
-            },
-          );
-          const data = await response.json();
+          const response = await amplifyClient.queries.lookupWeatherForecast({
+            latitude,
+            longitude,
+          });
+
+          if (response.errors?.length) {
+            throw new Error("Weather forecast is unavailable. Try again in a moment.");
+          }
+
+          const result = parseLookupPayload(response.data);
+          const data = result.body;
           const period = data.period;
 
-          if (!response.ok || typeof period !== "object" || period === null) {
+          if (!result.ok || typeof period !== "object" || period === null) {
             throw new Error(
               typeof data.error === "string"
                 ? data.error

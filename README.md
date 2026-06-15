@@ -81,16 +81,29 @@ sample USWDS button and form input to verify the design system is rendering.
 ## Amplify Sandbox Workflow
 
 This repository includes the Amplify backend foundation for ride-entry
-persistence:
+persistence and deployable public-data lookups:
 
 - `amplify/backend.ts` registers project backend resources.
 - `amplify/data/resource.ts` defines the `RideEntry` data model.
+- `amplify/functions/addressLookup/` calls the U.S. Census Geocoder from a
+  Lambda-backed custom query.
+- `amplify/functions/weatherForecast/` calls the National Weather Service from a
+  Lambda-backed custom query.
 - `npm run sandbox` runs `ampx sandbox` for local cloud deployment.
 
 Before running the sandbox, sign in with AWS credentials that can create
-Amplify, AppSync, DynamoDB, IAM, and CloudFormation resources in your target
-account. The sandbox is intended for development only; tear it down from the
-Amplify console or CLI when it is no longer needed.
+Amplify, AppSync, Lambda, DynamoDB, IAM, and CloudFormation resources in your
+target account. The sandbox is intended for development only; tear it down from
+the Amplify console or CLI when it is no longer needed.
+
+The static Astro frontend uses `amplify_outputs.json` to call the generated
+Amplify Data API. Generate that file locally with the Amplify sandbox workflow,
+or let Amplify Hosting generate it during deployment. Do not commit generated
+outputs.
+
+The Census Geocoder and National Weather Service integrations do not require
+provider API keys or secrets. Keep the NWS User-Agent string in
+`amplify/functions/weatherForecast/handler.ts` accurate for the deployed app.
 
 Generated outputs and local secrets are handled intentionally:
 

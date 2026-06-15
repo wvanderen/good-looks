@@ -1,10 +1,8 @@
-import type { APIRoute } from "astro";
+import type { Schema } from "../../data/resource";
 
 const NWS_ENDPOINT = "https://api.weather.gov";
 const USER_AGENT =
   "Ride Conditions portfolio app, https://github.com/openai/codex";
-
-export const prerender = false;
 
 type NwsPointsResponse = {
   properties?: {
@@ -33,15 +31,10 @@ type NwsForecastResponse = {
   };
 };
 
-const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "content-type": "application/json",
-    },
-  });
+const jsonPayload = (body: unknown, statusCode = 200) =>
+  JSON.stringify({ statusCode, body });
 
-const parseCoordinate = (value: string | null, min: number, max: number) => {
+const parseCoordinate = (value: string | null | undefined, min: number, max: number) => {
   if (!value) {
     return null;
   }
@@ -98,12 +91,14 @@ const normalizePeriod = (period: NwsForecastPeriod) => {
   };
 };
 
-export const GET: APIRoute = async ({ url }) => {
-  const latitude = parseCoordinate(url.searchParams.get("latitude"), -90, 90);
-  const longitude = parseCoordinate(url.searchParams.get("longitude"), -180, 180);
+export const handler: Schema["lookupWeatherForecast"]["functionHandler"] = async (
+  event,
+) => {
+  const latitude = parseCoordinate(event.arguments.latitude, -90, 90);
+  const longitude = parseCoordinate(event.arguments.longitude, -180, 180);
 
   if (latitude === null || longitude === null) {
-    return jsonResponse(
+    return jsonPayload(
       { error: "Enter valid latitude and longitude coordinates." },
       400,
     );
@@ -123,7 +118,7 @@ export const GET: APIRoute = async ({ url }) => {
     );
 
     if (!pointsResponse.ok) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "Weather forecast is unavailable for those coordinates." },
         502,
       );
@@ -133,7 +128,7 @@ export const GET: APIRoute = async ({ url }) => {
     const forecastUrl = pointsData.properties?.forecast;
 
     if (!isNwsUrl(forecastUrl)) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "Weather forecast is unavailable for those coordinates." },
         502,
       );
@@ -142,7 +137,7 @@ export const GET: APIRoute = async ({ url }) => {
     const forecastResponse = await fetch(forecastUrl, fetchOptions);
 
     if (!forecastResponse.ok) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "Weather forecast is unavailable. Try again in a moment." },
         502,
       );
@@ -153,19 +148,19 @@ export const GET: APIRoute = async ({ url }) => {
     const period = getNearestUsefulPeriod(periods);
 
     if (!period) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "Weather forecast is unavailable for those coordinates." },
         404,
       );
     }
 
-    return jsonResponse({
+    return jsonPayload({
       forecastUrl,
       period: normalizePeriod(period),
       source: "National Weather Service",
     });
   } catch {
-    return jsonResponse(
+    return jsonPayload(
       { error: "Weather forecast is unavailable. Try again in a moment." },
       502,
     );

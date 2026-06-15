@@ -10,7 +10,6 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/node": "^10.1.4",
     "@uswds/uswds": "^3.13.0",
     "astro": "^6.4.6",
     "aws-amplify": "^6.18.0"

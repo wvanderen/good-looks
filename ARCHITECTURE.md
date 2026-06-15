@@ -123,9 +123,12 @@ Attribution:
 - Link the documentation page to the Census Geocoder API documentation and NWS
   API documentation.
 
-Setup:
+Implementation:
 
 - No provider API key is required for the Census Geocoder.
+- The static frontend calls an Amplify Data custom query named `lookupAddress`.
+- The query is backed by the Lambda function in
+  `amplify/functions/addressLookup/`.
 - Use `PUBLIC_GEOCODER_PROVIDER=census` only if the app needs an explicit
   client-visible provider label later.
 - Use `GEOCODER_ENDPOINT=https://geocoding.geo.census.gov/geocoder/locations/onelineaddress`
@@ -161,6 +164,11 @@ The NWS flow is expected to be:
 2. Read forecast URL from the response.
 3. Fetch forecast periods.
 4. Use the nearest relevant period for the ride conditions panel.
+
+The static frontend calls an Amplify Data custom query named
+`lookupWeatherForecast`. The query is backed by the Lambda function in
+`amplify/functions/weatherForecast/`, and no provider API key or secret is
+required.
 
 MVP limitation:
 

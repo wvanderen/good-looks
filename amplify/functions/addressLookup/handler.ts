@@ -1,9 +1,7 @@
-import type { APIRoute } from "astro";
+import type { Schema } from "../../data/resource";
 
 const GEOCODER_ENDPOINT =
   "https://geocoding.geo.census.gov/geocoder/locations/onelineaddress";
-
-export const prerender = false;
 
 type CensusAddressMatch = {
   matchedAddress?: unknown;
@@ -19,19 +17,16 @@ type CensusResponse = {
   };
 };
 
-const jsonResponse = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "content-type": "application/json",
-    },
-  });
+const jsonPayload = (body: unknown, statusCode = 200) =>
+  JSON.stringify({ statusCode, body });
 
-export const GET: APIRoute = async ({ url }) => {
-  const address = url.searchParams.get("address")?.trim();
+export const handler: Schema["lookupAddress"]["functionHandler"] = async (
+  event,
+) => {
+  const address = event.arguments.address?.trim();
 
   if (!address) {
-    return jsonResponse({ error: "Enter an address to look up." }, 400);
+    return jsonPayload({ error: "Enter an address to look up." }, 400);
   }
 
   const geocoderUrl = new URL(GEOCODER_ENDPOINT);
@@ -47,7 +42,7 @@ export const GET: APIRoute = async ({ url }) => {
     });
 
     if (!response.ok) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "Address lookup is unavailable. Try again in a moment." },
         502,
       );
@@ -64,19 +59,19 @@ export const GET: APIRoute = async ({ url }) => {
       typeof latitude !== "number" ||
       typeof longitude !== "number"
     ) {
-      return jsonResponse(
+      return jsonPayload(
         { error: "We could not find coordinates for that address." },
         404,
       );
     }
 
-    return jsonResponse({
+    return jsonPayload({
       addressLabel,
       latitude,
       longitude,
     });
   } catch {
-    return jsonResponse(
+    return jsonPayload(
       { error: "Address lookup is unavailable. Try again in a moment." },
       502,
     );
