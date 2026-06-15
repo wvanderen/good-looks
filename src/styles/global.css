@@ -40,3 +40,7 @@ body {
 .app-form-preview {
   max-width: 34rem;
 }
+
+.app-validation-summary {
+  margin-top: 1.5rem;
+}

@@ -26,10 +26,30 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       <div class="grid-row grid-gap">
         <div class="tablet:grid-col-8 desktop:grid-col-6">
           <h2 id="journal-form-heading">Ride details</h2>
-          <form class="usa-form usa-form--large" action="/rides/" method="get">
+          <form
+            class="usa-form usa-form--large"
+            action="/rides/"
+            method="get"
+            novalidate
+            data-journal-form
+          >
             <p class="usa-hint">
               Required fields are marked with <abbr title="required">*</abbr>.
             </p>
+            <div
+              class="usa-alert usa-alert--error app-validation-summary"
+              id="journal-validation-summary"
+              role="alert"
+              tabindex="-1"
+              hidden
+            >
+              <div class="usa-alert__body">
+                <h2 class="usa-alert__heading" id="journal-validation-heading">
+                  Correct the highlighted fields.
+                </h2>
+                <ul class="usa-list" id="journal-validation-list"></ul>
+              </div>
+            </div>
 
             <fieldset class="usa-fieldset">
               <legend class="usa-legend usa-legend--large">When and where</legend>
@@ -251,4 +271,219 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       </div>
     </div>
   </section>
+
+  <script>
+    const journalForm = document.querySelector("[data-journal-form]");
+
+    if (journalForm instanceof HTMLFormElement) {
+      const validationSummary = journalForm.querySelector(
+        "#journal-validation-summary",
+      );
+      const validationList = journalForm.querySelector("#journal-validation-list");
+      const formControls = Array.from(
+        journalForm.querySelectorAll("input, select, textarea"),
+      ).filter(
+        (control) =>
+          control instanceof HTMLInputElement ||
+          control instanceof HTMLSelectElement ||
+          control instanceof HTMLTextAreaElement,
+      );
+
+      const fieldLabels = new Map([
+        ["ride-date", "Ride date"],
+        ["street-address", "Starting street address"],
+        ["address-city", "City"],
+        ["address-state", "State"],
+        ["address-zip", "ZIP code"],
+        ["ride-distance", "Distance in miles"],
+        ["ride-duration", "Duration in minutes"],
+        ["effort", "Effort"],
+      ]);
+
+      const requiredMessages = new Map([
+        ["address-state", "Select the state where the ride started."],
+        ["effort", "Select how hard the ride felt."],
+      ]);
+
+      const invalidMessages = new Map([
+        ["address-zip", "Enter a 5-digit ZIP code, or ZIP+4."],
+        ["ride-distance", "Enter a distance of 0 miles or more, using tenths of a mile if needed."],
+        ["ride-duration", "Enter a whole number of minutes greater than 0."],
+      ]);
+
+      const originalDescriptions = new Map(
+        formControls.map((control) => [
+          control.id,
+          control.getAttribute("aria-describedby") || "",
+        ]),
+      );
+
+      const getFieldKey = (control) =>
+        control.name === "effort" ? "effort" : control.id;
+
+      const getFieldLabel = (control) => {
+        const fieldKey = getFieldKey(control);
+        return (
+          fieldLabels.get(fieldKey) ||
+          control.labels?.[0]?.textContent?.replace("*", "").trim() ||
+          "This field"
+        );
+      };
+
+      const getErrorMessage = (control) => {
+        const fieldKey = getFieldKey(control);
+
+        if (control.validity.valueMissing) {
+          return (
+            requiredMessages.get(fieldKey) ||
+            `Enter ${getFieldLabel(control).toLowerCase()}.`
+          );
+        }
+
+        if (
+          control.validity.rangeUnderflow ||
+          control.validity.stepMismatch ||
+          control.validity.badInput ||
+          control.validity.patternMismatch
+        ) {
+          return (
+            invalidMessages.get(fieldKey) ||
+            `Enter a valid ${getFieldLabel(control).toLowerCase()}.`
+          );
+        }
+
+        return (
+          control.validationMessage ||
+          `Enter a valid ${getFieldLabel(control).toLowerCase()}.`
+        );
+      };
+
+      const getFormGroup = (control) => {
+        if (control.name === "effort") {
+          return control.closest("fieldset");
+        }
+
+        return control.closest(".usa-form-group") || control.parentElement;
+      };
+
+      const getInvalidControls = () => {
+        const invalidControls = [];
+        const seenFields = new Set();
+
+        for (const control of formControls) {
+          const fieldKey = getFieldKey(control);
+
+          if (seenFields.has(fieldKey) || control.validity.valid) {
+            continue;
+          }
+
+          seenFields.add(fieldKey);
+          invalidControls.push(control);
+        }
+
+        return invalidControls;
+      };
+
+      const clearErrors = () => {
+        validationSummary?.setAttribute("hidden", "");
+        validationList?.replaceChildren();
+
+        journalForm.querySelectorAll(".app-field-error").forEach((error) => {
+          error.remove();
+        });
+
+        formControls.forEach((control) => {
+          const describedBy = originalDescriptions.get(control.id);
+
+          control.removeAttribute("aria-invalid");
+          control.classList.remove("usa-input--error", "usa-select--error");
+          getFormGroup(control)?.classList.remove("usa-form-group--error");
+
+          if (describedBy) {
+            control.setAttribute("aria-describedby", describedBy);
+          } else {
+            control.removeAttribute("aria-describedby");
+          }
+        });
+      };
+
+      const showErrors = (invalidControls) => {
+        if (!validationSummary || !validationList) {
+          return;
+        }
+
+        clearErrors();
+
+        invalidControls.forEach((control) => {
+          const fieldKey = getFieldKey(control);
+          const errorId = `${fieldKey}-error`;
+          const message = getErrorMessage(control);
+          const formGroup = getFormGroup(control);
+          const errorMessage = document.createElement("span");
+          const summaryItem = document.createElement("li");
+          const summaryLink = document.createElement("a");
+          const existingDescription = originalDescriptions.get(control.id);
+          const describedBy = [errorId, existingDescription].filter(Boolean).join(" ");
+
+          errorMessage.className = "usa-error-message app-field-error";
+          errorMessage.id = errorId;
+          errorMessage.textContent = message;
+
+          formGroup?.classList.add("usa-form-group--error");
+          control.setAttribute("aria-invalid", "true");
+          control.setAttribute("aria-describedby", describedBy);
+          if (control instanceof HTMLSelectElement) {
+            control.classList.add("usa-select--error");
+          } else if (control.type !== "radio") {
+            control.classList.add("usa-input--error");
+          }
+
+          if (control.name === "effort") {
+            const legend = formGroup?.querySelector("legend");
+            legend?.insertAdjacentElement("afterend", errorMessage);
+          } else {
+            control.insertAdjacentElement("beforebegin", errorMessage);
+          }
+
+          summaryLink.href = `#${control.id}`;
+          summaryLink.textContent = `${getFieldLabel(control)}: ${message}`;
+          summaryItem.append(summaryLink);
+          validationList.append(summaryItem);
+        });
+
+        validationSummary.removeAttribute("hidden");
+        validationSummary.focus();
+      };
+
+      journalForm.addEventListener("submit", (event) => {
+        const invalidControls = getInvalidControls();
+
+        if (invalidControls.length === 0) {
+          clearErrors();
+          return;
+        }
+
+        event.preventDefault();
+        showErrors(invalidControls);
+      });
+
+      journalForm.addEventListener("input", (event) => {
+        if (
+          event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLTextAreaElement
+        ) {
+          clearErrors();
+        }
+      });
+
+      journalForm.addEventListener("change", (event) => {
+        if (
+          event.target instanceof HTMLSelectElement ||
+          event.target instanceof HTMLInputElement
+        ) {
+          clearErrors();
+        }
+      });
+    }
+  </script>
 </UswdsLayout>
