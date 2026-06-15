@@ -25,13 +25,14 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
     <div class="grid-container">
       <div class="grid-row grid-gap">
         <div class="tablet:grid-col-8 desktop:grid-col-6">
-          <h2 id="journal-form-heading">Ride details</h2>
+          <h2 id="journal-form-heading" tabindex="-1">Ride details</h2>
           <form
             class="usa-form usa-form--large"
             action="/rides/"
             method="get"
             novalidate
             data-journal-form
+            data-entry-step="form"
           >
             <p class="usa-hint">
               Required fields are marked with <abbr title="required">*</abbr>.
@@ -264,9 +265,34 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
             </fieldset>
 
             <button class="usa-button margin-top-4" type="submit">
-              Save ride entry
+              Continue
             </button>
           </form>
+
+          <section
+            class="margin-top-5"
+            aria-labelledby="journal-review-heading"
+            data-journal-review
+            hidden
+          >
+            <h2 id="journal-review-heading" tabindex="-1">Review ride details</h2>
+            <p>
+              Confirm these normalized details before saving the ride entry.
+            </p>
+            <dl class="app-review-list" data-review-list></dl>
+            <div class="margin-top-4">
+              <button class="usa-button" type="button" data-save-ride>
+                Save ride entry
+              </button>
+              <button
+                class="usa-button usa-button--outline"
+                type="button"
+                data-edit-ride
+              >
+                Edit details
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -274,6 +300,11 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 
   <script>
     const journalForm = document.querySelector("[data-journal-form]");
+    const journalReview = document.querySelector("[data-journal-review]");
+    const reviewHeading = document.querySelector("#journal-review-heading");
+    const reviewList = document.querySelector("[data-review-list]");
+    const editRideButton = document.querySelector("[data-edit-ride]");
+    const saveRideButton = document.querySelector("[data-save-ride]");
 
     if (journalForm instanceof HTMLFormElement) {
       const validationSummary = journalForm.querySelector(
@@ -309,6 +340,12 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ["address-zip", "Enter a 5-digit ZIP code, or ZIP+4."],
         ["ride-distance", "Enter a distance of 0 miles or more, using tenths of a mile if needed."],
         ["ride-duration", "Enter a whole number of minutes greater than 0."],
+      ]);
+
+      const effortLabels = new Map([
+        ["easy", "Easy"],
+        ["moderate", "Moderate"],
+        ["hard", "Hard"],
       ]);
 
       const originalDescriptions = new Map(
@@ -382,6 +419,118 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
 
         return invalidControls;
+      };
+
+      const getControl = (name) => journalForm.elements.namedItem(name);
+
+      const getTextValue = (name) => {
+        const control = getControl(name);
+
+        if (
+          control instanceof HTMLInputElement ||
+          control instanceof HTMLSelectElement ||
+          control instanceof HTMLTextAreaElement
+        ) {
+          return control.value.trim();
+        }
+
+        return "";
+      };
+
+      const getEffortValue = () => {
+        const checkedEffort = journalForm.querySelector(
+          'input[name="effort"]:checked',
+        );
+
+        if (checkedEffort instanceof HTMLInputElement) {
+          return effortLabels.get(checkedEffort.value) || checkedEffort.value;
+        }
+
+        return "";
+      };
+
+      const formatDate = (value) => {
+        const [year, month, day] = value.split("-").map(Number);
+
+        if (!year || !month || !day) {
+          return value;
+        }
+
+        return new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          timeZone: "UTC",
+        }).format(new Date(Date.UTC(year, month - 1, day)));
+      };
+
+      const formatDistance = (value) => {
+        const distance = Number(value);
+
+        if (!Number.isFinite(distance)) {
+          return value;
+        }
+
+        return `${distance.toLocaleString("en-US", {
+          maximumFractionDigits: 1,
+          minimumFractionDigits: distance % 1 === 0 ? 0 : 1,
+        })} miles`;
+      };
+
+      const formatDuration = (value) => {
+        const duration = Number(value);
+
+        if (!Number.isFinite(duration)) {
+          return value;
+        }
+
+        return `${duration.toLocaleString("en-US")} ${
+          duration === 1 ? "minute" : "minutes"
+        }`;
+      };
+
+      const getReviewItems = () => [
+        ["Ride date", formatDate(getTextValue("ride-date"))],
+        ["Starting street address", getTextValue("street-address")],
+        ["City", getTextValue("address-city")],
+        ["State", getTextValue("address-state")],
+        ["ZIP code", getTextValue("address-zip")],
+        ["Distance", formatDistance(getTextValue("ride-distance"))],
+        ["Duration", formatDuration(getTextValue("ride-duration"))],
+        ["Effort", getEffortValue()],
+        ["Weather notes", getTextValue("weather-notes") || "None entered"],
+        ["Ride notes", getTextValue("ride-notes") || "None entered"],
+      ];
+
+      const showForm = () => {
+        journalReview?.setAttribute("hidden", "");
+        journalForm.removeAttribute("hidden");
+        journalForm.dataset.entryStep = "form";
+      };
+
+      const showReview = () => {
+        if (!journalReview || !reviewList) {
+          return;
+        }
+
+        reviewList.replaceChildren();
+
+        getReviewItems().forEach(([label, value]) => {
+          const term = document.createElement("dt");
+          const detail = document.createElement("dd");
+
+          term.textContent = label;
+          detail.textContent = value;
+          reviewList.append(term, detail);
+        });
+
+        journalForm.setAttribute("hidden", "");
+        journalForm.dataset.entryStep = "review";
+        journalReview.removeAttribute("hidden");
+
+        if (reviewHeading instanceof HTMLElement) {
+          reviewHeading.focus();
+        }
       };
 
       const clearErrors = () => {
@@ -460,10 +609,18 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 
         if (invalidControls.length === 0) {
           clearErrors();
+
+          if (journalForm.dataset.entryStep === "confirmed") {
+            return;
+          }
+
+          event.preventDefault();
+          showReview();
           return;
         }
 
         event.preventDefault();
+        showForm();
         showErrors(invalidControls);
       });
 
@@ -483,6 +640,16 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ) {
           clearErrors();
         }
+      });
+
+      editRideButton?.addEventListener("click", () => {
+        showForm();
+        document.querySelector("#journal-form-heading")?.focus();
+      });
+
+      saveRideButton?.addEventListener("click", () => {
+        journalForm.dataset.entryStep = "confirmed";
+        journalForm.requestSubmit();
       });
     }
   </script>

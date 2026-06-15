@@ -44,3 +44,20 @@ body {
 .app-validation-summary {
   margin-top: 1.5rem;
 }
+
+.app-review-list {
+  border-top: 1px solid #dfe1e2;
+  margin-top: 1.5rem;
+  max-width: 34rem;
+}
+
+.app-review-list dt {
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
+.app-review-list dd {
+  border-bottom: 1px solid #dfe1e2;
+  margin: 0;
+  padding-bottom: 1rem;
+}
