@@ -76,16 +76,82 @@ The current plan should use Amplify as the job-relevant backend proof point. Amp
 
 ### Address Geocoding
 
-Decision still needed during implementation. Requirements:
+MVP decision: use the U.S. Census Geocoder `locations/onelineaddress`
+endpoint as the primary address-to-coordinate provider.
 
-- Accept normal street/city/state input.
-- Return latitude and longitude.
-- Have clear limits, pricing, and attribution requirements.
-- Be easy to configure locally.
+Rationale:
 
-Development fallback:
+- It matches the app's U.S.-only weather scope because NWS forecasts are for
+  U.S. points.
+- It accepts normal street/city/state/ZIP input and returns latitude,
+  longitude, and a matched address label.
+- It does not require an API key or paid account, which keeps local setup
+  lightweight for portfolio review.
+- It is a public government data service, which fits the civic-service product
+  story better than a commercial map provider for MVP.
 
-- Permit manual coordinates behind a dev-only or advanced field if geocoding blocks progress.
+Request shape:
+
+- `GET https://geocoding.geo.census.gov/geocoder/locations/onelineaddress`
+- Required query parameters:
+  - `address`: rider-entered one-line address.
+  - `benchmark=Public_AR_Current`
+  - `format=json`
+- Read the first acceptable `result.addressMatches[]` item.
+- Store `matchedAddress` as `addressLabel`, `coordinates.y` as latitude, and
+  `coordinates.x` as longitude.
+
+Limits and constraints:
+
+- Coverage is limited to the United States, Puerto Rico, and U.S. Island Areas.
+- The service geocodes structured addresses against MAF/TIGER address ranges,
+  so rural, incomplete, venue-only, intersection, trailhead, or landmark input
+  may fail or resolve imprecisely.
+- The Census API documentation publishes a 10,000-record cap for batch files,
+  but does not publish a precise single-record request quota. MVP usage should
+  debounce user-triggered lookups, avoid autocomplete-style calls, and cache the
+  selected geocode with the ride entry.
+- The Census docs note that standard CORS requests are not supported. Browser
+  UI should call a small server-side route or backend function, which then calls
+  the Census endpoint. Do not call the JSON endpoint directly from a hydrated
+  client component.
+
+Attribution:
+
+- Display a concise source note near the ride conditions or documentation:
+  "Address lookup: U.S. Census Geocoder. Weather: National Weather Service."
+- Link the documentation page to the Census Geocoder API documentation and NWS
+  API documentation.
+
+Setup:
+
+- No provider API key is required for the Census Geocoder.
+- Use `PUBLIC_GEOCODER_PROVIDER=census` only if the app needs an explicit
+  client-visible provider label later.
+- Use `GEOCODER_ENDPOINT=https://geocoding.geo.census.gov/geocoder/locations/onelineaddress`
+  only if implementation wants the endpoint configurable for tests or deployed
+  environments. Otherwise, keep the endpoint as a service-module constant.
+
+Manual coordinate fallback:
+
+- If the Census lookup returns no matches, errors, or is unavailable, show a
+  USWDS error alert and expose an advanced manual coordinate fallback.
+- The fallback accepts decimal latitude and longitude, validates numeric ranges
+  (`-90..90` latitude, `-180..180` longitude), and labels the location as
+  "Manual coordinates" unless the rider provides an optional display label.
+- Manual coordinates may continue to the NWS points lookup and may be saved with
+  the ride entry. Saved entries should preserve that the coordinates were manual
+  so later UI can avoid implying address verification.
+
+Deferred alternatives:
+
+- OpenStreetMap Nominatim is a reasonable post-MVP fallback for broader place
+  search, but the public service has a strict acceptable-use policy, including a
+  maximum of one request per second per application, required identifying
+  User-Agent/Referer, and visible OpenStreetMap attribution.
+- Commercial geocoders are out of scope for MVP unless the app later needs
+  higher reliability, autocomplete, service-level guarantees, or non-U.S.
+  coverage.
 
 ### National Weather Service
 
@@ -115,4 +181,6 @@ MVP limitation:
 - Astro islands architecture: https://docs.astro.build/en/concepts/islands/
 - USWDS developer documentation: https://designsystem.digital.gov/documentation/developers/
 - AWS Amplify Gen 2 quickstart: https://docs.amplify.aws/react/start/quickstart/
+- U.S. Census Geocoder API documentation: https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html
+- OpenStreetMap Nominatim usage policy: https://operations.osmfoundation.org/policies/nominatim/
 - NWS API documentation: https://www.weather.gov/documentation/services-web-api
