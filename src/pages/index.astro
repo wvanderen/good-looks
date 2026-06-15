@@ -1,0 +1,55 @@
+---
+import UswdsLayout from "../layouts/UswdsLayout.astro";
+---
+
+<UswdsLayout
+  title="Ride Conditions"
+  description="Accessible bike ride journal scaffolded with Astro and USWDS."
+>
+  <section class="usa-section app-intro">
+    <div class="grid-container">
+      <div class="grid-row grid-gap">
+        <div class="tablet:grid-col-7">
+          <p class="usa-intro">Ride journal MVP</p>
+          <h1>Log rides with weather-aware context.</h1>
+          <p>
+            Ride Conditions will help cyclists capture ride details, record a
+            location, and pair each entry with public weather data.
+          </p>
+          <a class="usa-button" href="#sample-control">Start a journal entry</a>
+        </div>
+        <div class="tablet:grid-col-5 app-summary" aria-labelledby="status-heading">
+          <h2 id="status-heading">Foundation status</h2>
+          <ul class="usa-list">
+            <li>Astro shell is running.</li>
+            <li>USWDS styles are loaded globally.</li>
+            <li>USWDS JavaScript bundle is wired for future components.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="usa-section usa-section--light">
+    <div class="grid-container">
+      <form class="usa-form app-form-preview">
+        <fieldset class="usa-fieldset">
+          <legend class="usa-legend usa-legend--large">Sample ride control</legend>
+          <label class="usa-label" for="sample-control">Ride location</label>
+          <div class="usa-hint" id="sample-control-hint">
+            This placeholder verifies USWDS form styling in Astro.
+          </div>
+          <input
+            class="usa-input"
+            id="sample-control"
+            name="sample-control"
+            type="text"
+            aria-describedby="sample-control-hint"
+            placeholder="123 Main St, Springfield, IL"
+          />
+          <button class="usa-button margin-top-3" type="button">Check conditions</button>
+        </fieldset>
+      </form>
+    </div>
+  </section>
+</UswdsLayout>

@@ -40,6 +40,30 @@ The first releasable version includes:
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [A11Y_CHECKLIST.md](A11Y_CHECKLIST.md)
 
+## Local Setup
+
+Install dependencies:
+
+```sh
+npm install
+```
+
+Run the Astro development server:
+
+```sh
+npm run dev
+```
+
+Build the production site:
+
+```sh
+npm run build
+```
+
+The base app imports USWDS CSS globally in `src/layouts/UswdsLayout.astro` and
+loads the USWDS JavaScript bundle from the same layout. The home page includes a
+sample USWDS button and form input to verify the design system is rendering.
+
 ## Reference Links
 
 - [Astro islands architecture](https://docs.astro.build/en/concepts/islands/)

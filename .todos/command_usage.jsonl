@@ -50,3 +50,16 @@
 {"ts":"2026-06-14T20:48:19.832067-05:00","cmd":"ready","session":"ses_c2ca11","ok":true,"dur_ms":1}
 {"ts":"2026-06-14T20:48:19.837129-05:00","cmd":"info","session":"ses_c2ca11","ok":true,"dur_ms":26}
 {"ts":"2026-06-14T20:59:02.945136-05:00","cmd":"version","flags":{"short":"true"},"session":"ses_c2ca11","ok":true,"dur_ms":0}
+{"ts":"2026-06-14T21:09:19.879052-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_8e1c50","ok":true,"dur_ms":46}
+{"ts":"2026-06-14T21:09:26.100009-05:00","cmd":"start","session":"ses_8e1c50","ok":true,"dur_ms":106}
+{"ts":"2026-06-14T21:09:34.289474-05:00","cmd":"show","session":"ses_8e1c50","ok":true,"dur_ms":64}
+{"ts":"2026-06-14T21:09:47.124396-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_8e1c50","ok":true,"dur_ms":46}
+{"ts":"2026-06-14T21:19:15.915029-05:00","cmd":"log","session":"ses_8e1c50","ok":true,"dur_ms":54}
+{"ts":"2026-06-14T21:19:27.563487-05:00","cmd":"handoff","session":"ses_8e1c50","ok":true,"dur_ms":130}
+{"ts":"2026-06-14T21:19:30.7672-05:00","cmd":"review","session":"ses_8e1c50","ok":true,"dur_ms":67}
+{"ts":"2026-06-14T21:19:55.488623-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_8e1c50","ok":true,"dur_ms":50}
+{"ts":"2026-06-14T21:19:57.533639-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_29f3c6","ok":true,"dur_ms":58}
+{"ts":"2026-06-14T21:20:04.116905-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_29f3c6","ok":true,"dur_ms":47}
+{"ts":"2026-06-14T21:21:50.28831-05:00","cmd":"approve","session":"ses_29f3c6","ok":false,"dur_ms":47,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-14T21:23:16.9202-05:00","cmd":"approve","flags":{"reason":"independent review passed: build, local run, USWDS wiring, sample component, README notes"},"session":"ses_29f3c6","ok":true,"dur_ms":84}
+{"ts":"2026-06-14T21:23:39.750745-05:00","cmd":"show","session":"ses_29f3c6","ok":true,"dur_ms":73}
