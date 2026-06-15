@@ -87,3 +87,89 @@
 {"ts":"2026-06-15T10:04:53.118478-05:00","cmd":"approve","session":"ses_bb6b8c","ok":false,"dur_ms":62,"err":"--record-only requires review_policy_mode=delegated"}
 {"ts":"2026-06-15T10:05:04.840491-05:00","cmd":"approve","flags":{"reason":"Independent review: ride journal form meets USWDS pattern and accessibility acceptance criteria. All fields are labeled, grouped sections use fieldsets/legends, required fields are visible and programmatic, and native controls support keyboard operation."},"session":"ses_bb6b8c","ok":true,"dur_ms":101}
 {"ts":"2026-06-15T10:05:13.840482-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_bb6b8c","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T10:09:23.347792-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_38be25","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T10:09:29.910934-05:00","cmd":"start","session":"ses_38be25","ok":true,"dur_ms":134}
+{"ts":"2026-06-15T10:09:36.891291-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_38be25","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T10:09:49.69458-05:00","cmd":"log","session":"ses_38be25","ok":true,"dur_ms":71}
+{"ts":"2026-06-15T10:12:37.000954-05:00","cmd":"handoff","session":"ses_38be25","ok":true,"dur_ms":159}
+{"ts":"2026-06-15T10:12:40.319715-05:00","cmd":"review","session":"ses_38be25","ok":true,"dur_ms":69}
+{"ts":"2026-06-15T10:13:08.11655-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_21b9c6","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T10:13:14.311435-05:00","cmd":"show","session":"ses_21b9c6","ok":true,"dur_ms":78}
+{"ts":"2026-06-15T10:13:28.36536-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_21b9c6","ok":true,"dur_ms":64}
+{"ts":"2026-06-15T10:13:43.843134-05:00","cmd":"approve","session":"ses_21b9c6","ok":false,"dur_ms":62,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:13:48.311893-05:00","cmd":"approve","flags":{"reason":"reviewed journal validation states"},"session":"ses_21b9c6","ok":true,"dur_ms":122}
+{"ts":"2026-06-15T10:13:53.381392-05:00","cmd":"show","session":"ses_21b9c6","ok":true,"dur_ms":89}
+{"ts":"2026-06-15T10:14:06.161873-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_21b9c6","ok":true,"dur_ms":88}
+{"ts":"2026-06-15T10:16:58.446471-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_cbaadd","ok":true,"dur_ms":66}
+{"ts":"2026-06-15T10:17:03.736957-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_cbaadd","ok":true,"dur_ms":63}
+{"ts":"2026-06-15T10:17:03.713808-05:00","cmd":"start","session":"ses_cbaadd","ok":true,"dur_ms":128}
+{"ts":"2026-06-15T10:19:43.132969-05:00","cmd":"log","session":"ses_cbaadd","ok":true,"dur_ms":63}
+{"ts":"2026-06-15T10:20:03.752999-05:00","cmd":"status","session":"ses_cbaadd","ok":true,"dur_ms":68}
+{"ts":"2026-06-15T10:20:06.935309-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_2cb159","ok":true,"dur_ms":56}
+{"ts":"2026-06-15T10:20:24.612254-05:00","cmd":"show","session":"ses_2cb159","ok":true,"dur_ms":85}
+{"ts":"2026-06-15T10:20:30.584677-05:00","cmd":"approve","session":"ses_2cb159","ok":false,"dur_ms":61,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:20:43.840062-05:00","cmd":"approve","flags":{"reason":"reviewed review-and-confirm flow"},"session":"ses_2cb159","ok":true,"dur_ms":71}
+{"ts":"2026-06-15T10:20:50.904829-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_2cb159","ok":true,"dur_ms":67}
+{"ts":"2026-06-15T10:20:50.952217-05:00","cmd":"reviewable","flags":{"include-approved":"true"},"session":"ses_2cb159","ok":true,"dur_ms":69}
+{"ts":"2026-06-15T10:21:02.478239-05:00","cmd":"handoff","session":"ses_2cb159","ok":true,"dur_ms":149}
+{"ts":"2026-06-15T10:21:07.566059-05:00","cmd":"review","session":"ses_2cb159","ok":true,"dur_ms":76}
+{"ts":"2026-06-15T10:21:20.882864-05:00","cmd":"approve","session":"ses_2cb159","ok":false,"dur_ms":56,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:21:24.008644-05:00","cmd":"approve","flags":{"reason":"independent review found no acceptance-criteria issues"},"session":"ses_2cb159","ok":true,"dur_ms":76}
+{"ts":"2026-06-15T10:21:32.767667-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_2cb159","ok":true,"dur_ms":61}
+{"ts":"2026-06-15T10:26:02.800374-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_dd5bcd","ok":true,"dur_ms":59}
+{"ts":"2026-06-15T10:26:02.935783-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_dd5bcd","ok":true,"dur_ms":57}
+{"ts":"2026-06-15T10:26:07.683663-05:00","cmd":"start","session":"ses_dd5bcd","ok":true,"dur_ms":120}
+{"ts":"2026-06-15T10:26:30.604794-05:00","cmd":"log","session":"ses_dd5bcd","ok":true,"dur_ms":62}
+{"ts":"2026-06-15T10:27:24.544077-05:00","cmd":"log","session":"ses_dd5bcd","ok":true,"dur_ms":68}
+{"ts":"2026-06-15T10:27:27.726911-05:00","cmd":"handoff","session":"ses_dd5bcd","ok":true,"dur_ms":153}
+{"ts":"2026-06-15T10:27:27.994031-05:00","cmd":"review","session":"ses_dd5bcd","ok":true,"dur_ms":74}
+{"ts":"2026-06-15T10:27:28.154999-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_43843d","ok":true,"dur_ms":62}
+{"ts":"2026-06-15T10:27:32.589675-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_43843d","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T10:27:44.253215-05:00","cmd":"approve","session":"ses_43843d","ok":false,"dur_ms":55,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:27:51.311667-05:00","cmd":"approve","flags":{"reason":"ARCHITECTURE.md records Census Geocoder decision, setup/env guidance, limits/attribution, and manual coordinate fallback."},"session":"ses_43843d","ok":true,"dur_ms":88}
+{"ts":"2026-06-15T10:27:59.874851-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_43843d","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T10:29:41.387637-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_eab299","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T10:29:49.35722-05:00","cmd":"show","session":"ses_eab299","ok":true,"dur_ms":1}
+{"ts":"2026-06-15T10:29:49.366112-05:00","cmd":"start","session":"ses_eab299","ok":true,"dur_ms":135}
+{"ts":"2026-06-15T10:32:43.389786-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_eab299","ok":true,"dur_ms":63}
+{"ts":"2026-06-15T10:34:39.270982-05:00","cmd":"log","session":"ses_eab299","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T10:35:04.884178-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_d68c5b","ok":true,"dur_ms":56}
+{"ts":"2026-06-15T10:35:10.274286-05:00","cmd":"show","session":"ses_d68c5b","ok":true,"dur_ms":84}
+{"ts":"2026-06-15T10:35:21.849109-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_d68c5b","ok":true,"dur_ms":53}
+{"ts":"2026-06-15T10:35:28.949259-05:00","cmd":"approve","session":"ses_d68c5b","ok":false,"dur_ms":59,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:35:41.041123-05:00","cmd":"approve","flags":{"reason":"reviewed address lookup implementation"},"session":"ses_d68c5b","ok":true,"dur_ms":68}
+{"ts":"2026-06-15T10:35:47.051088-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_d68c5b","ok":true,"dur_ms":54}
+{"ts":"2026-06-15T10:36:02.547659-05:00","cmd":"review","session":"ses_d68c5b","ok":true,"dur_ms":80}
+{"ts":"2026-06-15T10:36:02.546992-05:00","cmd":"handoff","session":"ses_d68c5b","ok":true,"dur_ms":189}
+{"ts":"2026-06-15T10:36:22.920199-05:00","cmd":"approve","session":"ses_d68c5b","ok":false,"dur_ms":58,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T10:36:26.24443-05:00","cmd":"approve","flags":{"reason":"independent review passed"},"session":"ses_d68c5b","ok":true,"dur_ms":75}
+{"ts":"2026-06-15T10:36:34.661027-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_d68c5b","ok":true,"dur_ms":63}
+{"ts":"2026-06-15T11:06:41.364093-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_f9fd77","ok":true,"dur_ms":61}
+{"ts":"2026-06-15T11:06:46.483577-05:00","cmd":"start","session":"ses_f9fd77","ok":true,"dur_ms":130}
+{"ts":"2026-06-15T11:06:59.618458-05:00","cmd":"show","session":"ses_f9fd77","ok":true,"dur_ms":88}
+{"ts":"2026-06-15T11:08:23.348921-05:00","cmd":"log","session":"ses_f9fd77","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T11:08:45.552887-05:00","cmd":"handoff","session":"ses_f9fd77","ok":true,"dur_ms":143}
+{"ts":"2026-06-15T11:08:49.079825-05:00","cmd":"review","session":"ses_f9fd77","ok":true,"dur_ms":70}
+{"ts":"2026-06-15T11:08:49.550712-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_e02376","ok":true,"dur_ms":53}
+{"ts":"2026-06-15T11:09:02.326542-05:00","cmd":"show","session":"ses_e02376","ok":true,"dur_ms":70}
+{"ts":"2026-06-15T11:09:10.577717-05:00","cmd":"approve","session":"ses_e02376","ok":false,"dur_ms":54,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T11:09:17.69732-05:00","cmd":"approve","flags":{"reason":"Reviewed NWS forecast endpoint and journal weather loading flow; acceptance criteria met."},"session":"ses_e02376","ok":true,"dur_ms":87}
+{"ts":"2026-06-15T11:09:39.840997-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_e02376","ok":true,"dur_ms":148}
+{"ts":"2026-06-15T11:09:39.840992-05:00","cmd":"show","session":"ses_e02376","ok":true,"dur_ms":188}
+{"ts":"2026-06-15T11:14:09.814346-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_42cd66","ok":true,"dur_ms":115}
+{"ts":"2026-06-15T11:14:16.466516-05:00","cmd":"start","session":"ses_42cd66","ok":true,"dur_ms":128}
+{"ts":"2026-06-15T11:14:26.814104-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_42cd66","ok":true,"dur_ms":70}
+{"ts":"2026-06-15T11:21:16.529399-05:00","cmd":"log","session":"ses_42cd66","ok":true,"dur_ms":61}
+{"ts":"2026-06-15T11:21:36.683982-05:00","cmd":"handoff","session":"ses_42cd66","ok":true,"dur_ms":140}
+{"ts":"2026-06-15T11:21:40.218651-05:00","cmd":"review","session":"ses_42cd66","ok":true,"dur_ms":63}
+{"ts":"2026-06-15T11:21:43.710019-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_e88083","ok":true,"dur_ms":52}
+{"ts":"2026-06-15T11:21:51.2041-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_e88083","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T11:22:30.841747-05:00","cmd":"approve","session":"ses_e88083","ok":false,"dur_ms":71,"err":"--record-only requires review_policy_mode=delegated"}
+{"ts":"2026-06-15T11:22:45.320307-05:00","cmd":"reviewable","flags":{"include-approved":"true"},"session":"ses_e88083","ok":true,"dur_ms":54}
+{"ts":"2026-06-15T11:22:45.323099-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_e88083","ok":true,"dur_ms":60}
+{"ts":"2026-06-15T11:22:45.332327-05:00","cmd":"show","session":"ses_e88083","ok":true,"dur_ms":79}
+{"ts":"2026-06-15T11:23:07.959365-05:00","cmd":"approve","flags":{"reason":"independent reviewer Hypatia found no blocking issues; build, typecheck, and Amplify CLI help checks passed"},"session":"ses_e88083","ok":true,"dur_ms":84}
+{"ts":"2026-06-15T11:23:20.524619-05:00","cmd":"status","flags":{"json":"true"},"session":"ses_e88083","ok":true,"dur_ms":65}
+{"ts":"2026-06-15T15:22:32.445104-05:00","cmd":"usage","flags":{"new-session":"true"},"session":"ses_efd774","ok":true,"dur_ms":78}
+{"ts":"2026-06-15T15:22:41.39882-05:00","cmd":"usage","flags":{"quiet":"true"},"session":"ses_efd774","ok":true,"dur_ms":58}
+{"ts":"2026-06-15T17:02:58.207036-05:00","cmd":"version","flags":{"short":"true"},"session":"ses_efd774","ok":true,"dur_ms":1}

@@ -4,5 +4,15 @@ dist/
 .env
 .env.*
 !.env.example
+amplify_outputs.json
+amplifyconfiguration.json
+.amplify/
 npm-debug.log*
 .todos/
+.sidecar/
+.sidecar-agent
+.sidecar-task
+.sidecar-pr
+.sidecar-start.sh
+.sidecar-base
+.td-root
