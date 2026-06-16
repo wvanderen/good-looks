@@ -64,7 +64,6 @@ Use this file as the testing record before calling the MVP portfolio-ready.
   - Chrome accessibility tree inspection as a VoiceOver/AX proxy for names, roles, headings, field groups, live regions, and review structure.
 - Follow-up tasks filed:
   - `td-fa9a3c`: Fix USWDS hint text color contrast.
-  - `td-dc0209`: Fix docs sidenav complementary landmark nesting.
   - `td-269ce9`: Move focus to save result status after journal save.
 
 ## Manual Findings Log
@@ -75,7 +74,7 @@ Use this file as the testing record before calling the MVP portfolio-ready.
 | 2026-06-16 | axe-core 4.11.4 CLI | Journal form | `color-contrast` serious violations on `form > .usa-hint`, `#weather-notes-hint`, and `#ride-notes-hint`. | Follow-up filed as `td-fa9a3c`. |
 | 2026-06-16 | axe-core 4.11.4 injected | Journal review/save step | 0 violations after successful address/weather lookup and review transition. | No follow-up. |
 | 2026-06-16 | axe-core 4.11.4 CLI | Saved rides | 0 violations on initial saved-rides page. | No follow-up. |
-| 2026-06-16 | axe-core 4.11.4 CLI | Docs | `landmark-complementary-is-top-level` moderate violation on nested `aside`. | Follow-up filed as `td-dc0209`. |
+| 2026-06-16 | axe-core 4.11.4 CLI | Docs | Guidance navigation uses a named `nav` without a nested complementary landmark. | Passed after `td-dc0209`. |
 | 2026-06-16 | Lighthouse | Home | Accessibility score: 95. Top failing audit: color contrast for sample hint text. | Follow-up filed as `td-fa9a3c`. |
 | 2026-06-16 | Keyboard | Home | First Tab lands on skip link; Enter scrolls to main content and next control. Primary nav, in-page CTA, sample input, and button are reachable in order. | Passed. |
 | 2026-06-16 | Keyboard | Journal form | Tab order proceeds through skip link, brand/nav, date input, address fields, distance/duration, effort radio group, notes fields, and Continue. Native date input exposes Chrome date-picker controls. | Passed. |

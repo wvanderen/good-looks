@@ -51,8 +51,8 @@ Latest recorded pass: 2026-06-16 against built Astro preview at
   - Journal form: 3 serious `color-contrast` violations on USWDS hint text.
   - Journal review/save state: 0 violations after successful lookup and review.
   - Saved rides: 0 violations.
-  - Docs: 1 moderate `landmark-complementary-is-top-level` violation on the
-    nested guidance `aside`.
+  - Docs: 0 violations after replacing the nested guidance `aside` with a
+    non-landmark grid wrapper.
 - Keyboard checks passed for skip link, primary navigation, journal fields,
   validation-summary focus, review heading focus, Save/Edit reachability, and
   saved-rides navigation. A follow-up is filed to move focus to the save result
