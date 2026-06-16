@@ -5,7 +5,8 @@
 - Astro for the site shell, routing, documentation pages, and mostly static rendering.
 - USWDS for visual language, form patterns, validation states, alerts, layout utilities, and accessibility-aligned components.
 - Hydrated frontend islands for interactive ride journal behavior.
-- AWS Amplify for lightweight backend data persistence and, if included in MVP, authentication.
+- AWS Amplify Gen 2 for the Data API, Lambda-backed custom queries, and
+  lightweight backend persistence.
 - National Weather Service API for public weather data.
 - Address geocoding service to convert rider-entered addresses into latitude/longitude.
 
@@ -18,27 +19,37 @@
 - Prefer a working vertical slice over broad feature coverage.
 - Document tradeoffs where MVP behavior differs from a production civic service.
 
-## Proposed Routes
+## Current Routes
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Dashboard or brief project overview with recent rides. |
-| `/journal` | Create a ride journal entry. |
-| `/rides` | List saved ride entries. |
-| `/docs` | Documentation index. |
-| `/docs/ride-journal` | Usage guidance for the ride journal pattern. |
-| `/docs/accessibility` | Accessibility testing notes and results. |
+| `/` | Project overview and entry point. |
+| `/journal` | Create, enrich, review, and save a ride journal entry. |
+| `/rides` | List saved ride entries from Amplify. |
+| `/docs` | Ride journal usage guidance, accessibility notes, and implementation notes. |
 
 ## Data Flow
 
-1. User enters ride details and an address.
-2. Address geocoding returns latitude, longitude, and a normalized display label.
-3. App calls the NWS points endpoint with coordinates.
-4. NWS response provides forecast URLs for that point.
-5. App fetches forecast details and derives a compact ride conditions summary.
-6. User reviews the ride entry.
-7. App saves ride fields plus weather snapshot through Amplify.
-8. Saved rides page reads persisted entries and displays them with their weather context.
+1. User enters ride details and a structured U.S. starting address in
+   `/journal`.
+2. The browser combines the address fields into a one-line address and calls
+   the Amplify Data custom query `lookupAddress`.
+3. `lookupAddress` invokes the `address-lookup` Lambda function, which calls
+   the U.S. Census Geocoder `locations/onelineaddress` endpoint.
+4. The function returns a JSON payload with status, normalized address label,
+   latitude, and longitude, or a recoverable error message.
+5. The browser calls the Amplify Data custom query `lookupWeatherForecast` with
+   the returned coordinates.
+6. `lookupWeatherForecast` invokes the `weather-forecast` Lambda function,
+   which calls the NWS points endpoint and then the returned NWS forecast URL.
+7. The function returns the nearest useful forecast period, source label, and
+   forecast URL. The page derives the display summary and condition label from
+   that snapshot.
+8. User reviews normalized ride details and the captured weather context.
+9. App saves ride fields plus weather snapshot through the Amplify
+   `RideEntry` model.
+10. `/rides` reads persisted `RideEntry` records from Amplify, sorts them by
+    ride date, and displays each entry with its saved weather snapshot.
 
 ## Initial Data Model
 
@@ -72,14 +83,18 @@ Amplify manages `id`, `createdAt`, and `updatedAt`; the app supplies
 `weatherCapturedAt` so the saved weather snapshot has an explicit capture time
 separate from backend write timestamps.
 
-## Amplify Notes
+## Amplify Responsibilities
 
-The current plan should use Amplify as the job-relevant backend proof point. Amplify Gen 2 documentation describes TypeScript-defined data/auth/storage/functions and a local cloud sandbox workflow. Keep the MVP backend narrow:
+Amplify is the job-relevant backend proof point and the only backend layer in
+the MVP. The repository uses Amplify Gen 2 TypeScript definitions for:
 
-- Data model first.
-- Auth only if the setup cost is reasonable.
-- Owner-based authorization if auth is enabled.
-- Avoid custom AWS services until the journal flow works.
+- Registering backend resources in `amplify/backend.ts`.
+- Defining the GraphQL-backed Data API and `RideEntry` model in
+  `amplify/data/resource.ts`.
+- Exposing `lookupAddress` and `lookupWeatherForecast` as Data custom queries.
+- Running the geocoder and NWS integrations in Lambda functions so the static
+  Astro client does not call those public APIs directly.
+- Managing backend-generated `id`, `createdAt`, and `updatedAt` fields.
 
 Current MVP authorization choice: the Amplify Data API uses the same short-lived
 public API key mode as the sandbox lookup queries. This keeps portfolio setup
@@ -88,6 +103,9 @@ The tradeoff is that saved entries are not private user-owned records in a
 shared sandbox, so ride notes should be treated as non-sensitive demo data.
 Before using the journal for private ride history, add Amplify Auth and change
 `RideEntry` to owner-based authorization.
+
+Authentication, owner-based authorization, storage, queues, and custom
+non-Amplify AWS services are intentionally out of scope for the current MVP.
 
 ## API Integration Notes
 
@@ -146,22 +164,19 @@ Implementation:
 - The static frontend calls an Amplify Data custom query named `lookupAddress`.
 - The query is backed by the Lambda function in
   `amplify/functions/addressLookup/`.
-- Use `PUBLIC_GEOCODER_PROVIDER=census` only if the app needs an explicit
-  client-visible provider label later.
-- Use `GEOCODER_ENDPOINT=https://geocoding.geo.census.gov/geocoder/locations/onelineaddress`
-  only if implementation wants the endpoint configurable for tests or deployed
-  environments. Otherwise, keep the endpoint as a service-module constant.
+- The endpoint is currently a constant in the Lambda handler; there is no
+  geocoder environment variable in the MVP.
+- The current journal form uses separate street, city, state, and ZIP controls,
+  then submits a one-line address to the backend lookup query.
 
 Manual coordinate fallback:
 
-- If the Census lookup returns no matches, errors, or is unavailable, show a
-  USWDS error alert and expose an advanced manual coordinate fallback.
-- The fallback accepts decimal latitude and longitude, validates numeric ranges
-  (`-90..90` latitude, `-180..180` longitude), and labels the location as
-  "Manual coordinates" unless the rider provides an optional display label.
-- Manual coordinates may continue to the NWS points lookup and may be saved with
-  the ride entry. Saved entries should preserve that the coordinates were manual
-  so later UI can avoid implying address verification.
+- The data model preserves `locationSource` values for either `address` or
+  `manual`, but the visible MVP flow currently implements the address path.
+- If a manual coordinate UI is added later, it should validate decimal
+  latitude and longitude ranges (`-90..90` latitude, `-180..180` longitude),
+  label entries honestly, and preserve that the coordinates were manual so the
+  saved ride does not imply address verification.
 
 Deferred alternatives:
 
@@ -175,12 +190,15 @@ Deferred alternatives:
 
 ### National Weather Service
 
-The NWS flow is expected to be:
+The implemented NWS flow is:
 
 1. `GET https://api.weather.gov/points/{lat},{lon}`
-2. Read forecast URL from the response.
-3. Fetch forecast periods.
-4. Use the nearest relevant period for the ride conditions panel.
+2. Validate that `properties.forecast` points back to `https://api.weather.gov/`.
+3. Fetch that forecast URL.
+4. Choose the first forecast period whose `endTime` has not passed, falling
+   back to the first returned period if needed.
+5. Normalize period name, start/end time, temperature, wind, short forecast,
+   detailed forecast, and precipitation probability.
 
 The static frontend calls an Amplify Data custom query named
 `lookupWeatherForecast`. The query is backed by the Lambda function in
@@ -190,16 +208,42 @@ required.
 MVP limitation:
 
 - Forecast data is best for current or near-future conditions. For past rides, save the weather snapshot at entry time and document that historical reconstruction is out of scope.
+- The app stores a compact snapshot rather than the full NWS response. This
+  keeps saved records readable and stable, but it means later UI cannot
+  recalculate conditions from the original raw forecast payload.
 
 ## Frontend Component Boundaries
 
-| Component | Responsibility |
+The current MVP uses Astro pages with inline hydrated scripts rather than a
+separate component library. These are the active page-level boundaries:
+
+| Boundary | Responsibility |
 | --- | --- |
-| `RideJournalForm` | Form fields, validation display, submit intent. |
-| `RideReview` | Confirmation step before save. |
-| `RideConditionsPanel` | Weather loading/success/error UI. |
-| `SavedRidesList` | Display persisted ride entries. |
-| `UswdsLayout` | Shared layout, navigation, skip link, page structure. |
+| `src/pages/journal.astro` | Form fields, validation display, address/weather lookups, conditions panel, review step, and save action. |
+| `src/pages/rides.astro` | Amplify list query, loading/error/empty states, sorting, and saved ride cards. |
+| `src/pages/docs.astro` | Ride journal usage guidance, accessibility notes, and implementation notes. |
+| `src/layouts/UswdsLayout.astro` | Shared layout, navigation, skip link, page structure, USWDS CSS, and USWDS JavaScript. |
+| `src/lib/amplifyClient.ts` | Amplify client configuration from generated `amplify_outputs.json`. |
+
+Component extraction is a post-MVP refactor candidate once the data flow and
+accessibility behavior settle.
+
+## Known MVP Tradeoffs
+
+- Public API key authorization keeps the sandbox easy to review, but saved ride
+  entries are not private. Treat sandbox data as non-sensitive demo data.
+- The app uses public U.S. government data sources only. Address lookup and NWS
+  forecasts are U.S.-scoped and can fail for incomplete, rural, venue-only, or
+  non-U.S. locations.
+- Forecast snapshots are captured at entry time. Historical weather
+  reconstruction for old rides is out of scope.
+- The current frontend is page-script based. This is acceptable for the small
+  vertical slice, but shared components would become valuable if the journal
+  workflow grows.
+- There is no route planning, mapping, GPX import, social sharing, or native
+  mobile experience in the MVP.
+- The generated `amplify_outputs.json` file is required locally after running
+  the Amplify sandbox, but it is intentionally ignored by git.
 
 ## Documentation Sources
 
