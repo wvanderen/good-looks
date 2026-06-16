@@ -352,6 +352,16 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
               Confirm these normalized details before saving the ride entry.
             </p>
             <dl class="app-review-list" data-review-list></dl>
+            <div
+              class="usa-alert margin-top-4"
+              data-save-status
+              hidden
+            >
+              <div class="usa-alert__body">
+                <h3 class="usa-alert__heading" data-save-status-heading></h3>
+                <p class="usa-alert__text" data-save-status-message></p>
+              </div>
+            </div>
             <div class="margin-top-4">
               <button class="usa-button" type="button" data-save-ride>
                 Save ride entry
@@ -379,6 +389,9 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
     const reviewList = document.querySelector("[data-review-list]");
     const editRideButton = document.querySelector("[data-edit-ride]");
     const saveRideButton = document.querySelector("[data-save-ride]");
+    const saveStatus = document.querySelector("[data-save-status]");
+    const saveStatusHeading = document.querySelector("[data-save-status-heading]");
+    const saveStatusMessage = document.querySelector("[data-save-status-message]");
 
     if (journalForm instanceof HTMLFormElement) {
       const validationSummary = journalForm.querySelector(
@@ -607,6 +620,55 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
       };
 
+      const setSaveLoading = (isLoading) => {
+        if (saveRideButton instanceof HTMLButtonElement) {
+          saveRideButton.disabled = isLoading;
+          saveRideButton.textContent = isLoading ? "Saving ride entry..." : "Save ride entry";
+        }
+
+        if (editRideButton instanceof HTMLButtonElement) {
+          editRideButton.disabled = isLoading;
+        }
+      };
+
+      const setSaveStatus = (variant, heading, message) => {
+        if (!saveStatus || !saveStatusHeading || !saveStatusMessage) {
+          return;
+        }
+
+        saveStatus.classList.remove(
+          "usa-alert--error",
+          "usa-alert--info",
+          "usa-alert--success",
+        );
+        saveStatus.classList.add(`usa-alert--${variant}`);
+        saveStatusHeading.textContent = heading;
+        saveStatusMessage.textContent = message;
+
+        if (variant === "error") {
+          saveStatus.setAttribute("role", "alert");
+        } else {
+          saveStatus.setAttribute("role", "status");
+          saveStatus.setAttribute("aria-live", "polite");
+        }
+
+        saveStatus.removeAttribute("hidden");
+      };
+
+      const clearSaveStatus = () => {
+        saveStatus?.setAttribute("hidden", "");
+        saveStatus?.removeAttribute("role");
+        saveStatus?.removeAttribute("aria-live");
+
+        if (saveStatusHeading) {
+          saveStatusHeading.textContent = "";
+        }
+
+        if (saveStatusMessage) {
+          saveStatusMessage.textContent = "";
+        }
+      };
+
       const clearWeatherLookupResult = () => {
         setHiddenValue(weatherSummaryInput, "");
         setHiddenValue(weatherTemperatureInput, "");
@@ -791,6 +853,103 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         return "";
       };
 
+      const getEffortInputValue = () => {
+        const checkedEffort = journalForm.querySelector(
+          'input[name="effort"]:checked',
+        );
+
+        if (checkedEffort instanceof HTMLInputElement) {
+          return checkedEffort.value;
+        }
+
+        return "";
+      };
+
+      const deriveConditionLabel = () => {
+        const weatherText = [
+          getTextValue("weather-summary"),
+          getTextValue("weather-temperature"),
+          getTextValue("weather-wind"),
+          getTextValue("weather-precipitation"),
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        const temperature = Number.parseFloat(getTextValue("weather-temperature"));
+
+        if (weatherText.includes("rain") || weatherText.includes("shower")) {
+          return "wet";
+        }
+
+        if (weatherText.includes("wind")) {
+          return "watch_wind";
+        }
+
+        if (Number.isFinite(temperature) && temperature >= 85) {
+          return "hot";
+        }
+
+        if (Number.isFinite(temperature) && temperature <= 40) {
+          return "cold";
+        }
+
+        if (getTextValue("weather-summary")) {
+          return "favorable";
+        }
+
+        return "unknown";
+      };
+
+      const buildRideEntryInput = () => ({
+        rideDate: getTextValue("ride-date"),
+        addressLabel: getTextValue("address-label") || buildOneLineAddress(),
+        latitude: Number(getTextValue("address-latitude")),
+        longitude: Number(getTextValue("address-longitude")),
+        locationSource: "address",
+        distanceMiles: Number(getTextValue("ride-distance")),
+        durationMinutes: Number(getTextValue("ride-duration")),
+        effort: getEffortInputValue(),
+        rideNotes: getTextValue("ride-notes") || null,
+        weatherNotes: getTextValue("weather-notes") || null,
+        weatherSummary: getTextValue("weather-summary") || "Unavailable",
+        weatherTemperature: getTextValue("weather-temperature") || null,
+        windSpeed: getTextValue("weather-wind") || null,
+        precipitationSummary: getTextValue("weather-precipitation") || null,
+        weatherSource: getTextValue("weather-source") || "Not captured",
+        weatherCapturedAt: new Date().toISOString(),
+        conditionLabel: deriveConditionLabel(),
+      });
+
+      const saveRideEntry = async () => {
+        clearSaveStatus();
+        setSaveLoading(true);
+        setSaveStatus("info", "Saving ride entry", "Your confirmed ride is being saved.");
+
+        try {
+          const response = await amplifyClient.models.RideEntry.create(
+            buildRideEntryInput(),
+          );
+
+          if (response.errors?.length) {
+            throw new Error("Ride entry could not be saved. Try again in a moment.");
+          }
+
+          setSaveStatus(
+            "success",
+            "Ride entry saved",
+            "Your ride entry was saved and is ready for the saved rides list.",
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Ride entry could not be saved. Try again in a moment.";
+          setSaveStatus("error", "Ride entry was not saved", message);
+        } finally {
+          setSaveLoading(false);
+        }
+      };
+
       const formatDate = (value) => {
         const [year, month, day] = value.split("-").map(Number);
 
@@ -879,6 +1038,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         journalForm.setAttribute("hidden", "");
         journalForm.dataset.entryStep = "review";
         journalReview.removeAttribute("hidden");
+        clearSaveStatus();
 
         if (reviewHeading instanceof HTMLElement) {
           reviewHeading.focus();
@@ -1016,9 +1176,8 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         document.querySelector("#journal-form-heading")?.focus();
       });
 
-      saveRideButton?.addEventListener("click", () => {
-        journalForm.dataset.entryStep = "confirmed";
-        journalForm.requestSubmit();
+      saveRideButton?.addEventListener("click", async () => {
+        await saveRideEntry();
       });
     }
   </script>

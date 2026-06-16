@@ -13,11 +13,256 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           <p class="usa-intro">Saved rides</p>
           <h1>Return to logged rides.</h1>
           <p>
-            Browse ride entries after they are saved, with space for route,
-            date, notes, and recorded ride context.
+            Browse ride entries after they are saved, including route,
+            effort, notes, and recorded ride context.
           </p>
         </div>
       </div>
     </div>
   </section>
+
+  <section class="usa-section usa-section--light" aria-labelledby="saved-rides-heading">
+    <div class="grid-container">
+      <div class="grid-row grid-gap">
+        <div class="tablet:grid-col-10 desktop:grid-col-8">
+          <div class="display-flex flex-align-center flex-justify">
+            <h2 id="saved-rides-heading" class="margin-y-0">Ride entries</h2>
+            <a class="usa-button usa-button--outline" href="/journal/">
+              Add ride
+            </a>
+          </div>
+
+          <div
+            class="usa-alert usa-alert--info usa-alert--slim margin-top-4"
+            data-rides-loading
+            role="status"
+            aria-live="polite"
+          >
+            <div class="usa-alert__body">
+              <p class="usa-alert__text">Loading saved rides...</p>
+            </div>
+          </div>
+
+          <div
+            class="usa-alert usa-alert--error margin-top-4"
+            data-rides-error
+            role="alert"
+            hidden
+          >
+            <div class="usa-alert__body">
+              <h3 class="usa-alert__heading">Saved rides could not load</h3>
+              <p class="usa-alert__text">
+                Refresh the page or try again in a moment.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="usa-alert usa-alert--info margin-top-4"
+            data-rides-empty
+            hidden
+          >
+            <div class="usa-alert__body">
+              <h3 class="usa-alert__heading">No saved rides yet</h3>
+              <p class="usa-alert__text">
+                Saved ride entries will appear here after they are added from the
+                journal.
+              </p>
+            </div>
+          </div>
+
+          <ul class="usa-card-group app-ride-list margin-top-4" data-rides-list></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    import { amplifyClient } from "../lib/amplifyClient";
+
+    const ridesList = document.querySelector("[data-rides-list]");
+    const loadingState = document.querySelector("[data-rides-loading]");
+    const errorState = document.querySelector("[data-rides-error]");
+    const emptyState = document.querySelector("[data-rides-empty]");
+
+    const effortLabels = new Map([
+      ["easy", "Easy"],
+      ["moderate", "Moderate"],
+      ["hard", "Hard"],
+    ]);
+
+    const setHidden = (element: Element | null, isHidden: boolean) => {
+      if (isHidden) {
+        element?.setAttribute("hidden", "");
+      } else {
+        element?.removeAttribute("hidden");
+      }
+    };
+
+    const formatDate = (value: string | null | undefined) => {
+      if (!value) {
+        return "Date unavailable";
+      }
+
+      const [year, month, day] = value.split("-").map(Number);
+
+      if (!year || !month || !day) {
+        return value;
+      }
+
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(Date.UTC(year, month - 1, day)));
+    };
+
+    const formatDistance = (value: number | null | undefined) => {
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        return "Distance unavailable";
+      }
+
+      return `${value.toLocaleString("en-US", {
+        maximumFractionDigits: 1,
+        minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+      })} mi`;
+    };
+
+    const formatEffort = (value: string | null | undefined) =>
+      value ? effortLabels.get(value) || value : "Effort unavailable";
+
+    const formatNotesPreview = (
+      rideNotes: string | null | undefined,
+      weatherNotes: string | null | undefined,
+    ) => {
+      const notes = [rideNotes, weatherNotes]
+        .map((note) => note?.trim())
+        .filter(Boolean)
+        .join(" ");
+
+      if (!notes) {
+        return "No notes entered.";
+      }
+
+      return notes.length > 140 ? `${notes.slice(0, 137).trim()}...` : notes;
+    };
+
+    const formatWeatherSnapshot = (entry: {
+      weatherSummary?: string | null;
+      weatherTemperature?: string | null;
+      windSpeed?: string | null;
+      precipitationSummary?: string | null;
+    }) =>
+      [
+        entry.weatherTemperature,
+        entry.weatherSummary,
+        entry.windSpeed ? `Wind ${entry.windSpeed}` : "",
+        entry.precipitationSummary,
+      ]
+        .filter((value) => typeof value === "string" && value.trim())
+        .join(" | ") || "Weather unavailable";
+
+    const createMetaItem = (label: string, value: string) => {
+      const item = document.createElement("div");
+      const term = document.createElement("dt");
+      const detail = document.createElement("dd");
+
+      term.textContent = label;
+      detail.textContent = value;
+      item.append(term, detail);
+
+      return item;
+    };
+
+    const renderRideEntry = (entry: {
+      id?: string;
+      rideDate?: string | null;
+      addressLabel?: string | null;
+      distanceMiles?: number | null;
+      effort?: string | null;
+      rideNotes?: string | null;
+      weatherNotes?: string | null;
+      weatherSummary?: string | null;
+      weatherTemperature?: string | null;
+      windSpeed?: string | null;
+      precipitationSummary?: string | null;
+    }) => {
+      const item = document.createElement("li");
+      const card = document.createElement("article");
+      const header = document.createElement("div");
+      const date = document.createElement("p");
+      const address = document.createElement("h3");
+      const metaList = document.createElement("dl");
+      const notes = document.createElement("p");
+      const weather = document.createElement("p");
+
+      item.className = "usa-card tablet:grid-col-12";
+      card.className = "usa-card__container app-ride-card";
+      header.className = "usa-card__header";
+      date.className = "app-ride-date";
+      address.className = "usa-card__heading";
+      metaList.className = "app-ride-meta";
+      notes.className = "app-ride-notes";
+      weather.className = "app-ride-weather";
+
+      date.textContent = formatDate(entry.rideDate);
+      address.textContent = entry.addressLabel || "Address unavailable";
+      metaList.append(
+        createMetaItem("Distance", formatDistance(entry.distanceMiles)),
+        createMetaItem("Effort", formatEffort(entry.effort)),
+      );
+      notes.textContent = formatNotesPreview(entry.rideNotes, entry.weatherNotes);
+      weather.textContent = formatWeatherSnapshot(entry);
+
+      header.append(date, address);
+      card.append(header, metaList, notes, weather);
+      item.append(card);
+
+      return item;
+    };
+
+    const loadRideEntries = async () => {
+      if (!ridesList) {
+        return;
+      }
+
+      setHidden(loadingState, false);
+      setHidden(errorState, true);
+      setHidden(emptyState, true);
+      ridesList.replaceChildren();
+
+      try {
+        const entries = [];
+        let nextToken = null;
+
+        do {
+          const response = await amplifyClient.models.RideEntry.list({
+            limit: 100,
+            nextToken,
+          });
+
+          if (response.errors?.length) {
+            throw new Error("Saved rides could not load.");
+          }
+
+          entries.push(...response.data);
+          nextToken = response.nextToken;
+        } while (nextToken);
+
+        entries.sort((first, second) =>
+          String(second.rideDate || "").localeCompare(String(first.rideDate || "")),
+        );
+
+        setHidden(loadingState, true);
+        setHidden(emptyState, entries.length > 0);
+        ridesList.replaceChildren(...entries.map(renderRideEntry));
+      } catch {
+        setHidden(loadingState, true);
+        setHidden(errorState, false);
+      }
+    };
+
+    loadRideEntries();
+  </script>
 </UswdsLayout>
