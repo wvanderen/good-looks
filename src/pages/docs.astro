@@ -11,11 +11,226 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       <div class="grid-row grid-gap">
         <div class="tablet:grid-col-8">
           <p class="usa-intro">Documentation</p>
-          <h1>Understand the MVP.</h1>
+          <h1>Ride journal usage guidelines.</h1>
           <p>
-            Find implementation notes, accessibility expectations, and product
-            context for the Ride Conditions MVP.
+            Use this guidance to decide when the ride journal pattern fits a
+            workflow, what content it should ask for, and how to keep the
+            experience usable, accessible, and implementation-ready.
           </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="usa-section" aria-labelledby="pattern-fit-heading">
+    <div class="grid-container">
+      <div class="grid-row grid-gap">
+        <aside class="tablet:grid-col-4 desktop:grid-col-3">
+          <nav aria-label="Ride journal guidance">
+            <ul class="usa-sidenav">
+              <li class="usa-sidenav__item">
+                <a href="#when-to-use">When to use</a>
+              </li>
+              <li class="usa-sidenav__item">
+                <a href="#when-not-to-use">When not to use</a>
+              </li>
+              <li class="usa-sidenav__item">
+                <a href="#content-guidance">Content guidance</a>
+              </li>
+              <li class="usa-sidenav__item">
+                <a href="#validation-guidance">Validation guidance</a>
+              </li>
+              <li class="usa-sidenav__item">
+                <a href="#accessibility-notes">Accessibility notes</a>
+              </li>
+              <li class="usa-sidenav__item">
+                <a href="#implementation-notes">Implementation notes</a>
+              </li>
+            </ul>
+          </nav>
+        </aside>
+
+        <div class="tablet:grid-col-8 desktop:grid-col-7">
+          <h2 id="pattern-fit-heading">Pattern fit</h2>
+          <p>
+            The ride journal pattern is a structured form-and-review flow for
+            recording a ride after it happens or while the details are still
+            fresh. It combines rider-entered details with normalized address and
+            public weather context so saved entries can be compared later.
+          </p>
+
+          <h3 id="when-to-use">When to use</h3>
+          <ul class="usa-list">
+            <li>
+              Use it when riders need to save a durable record of a completed or
+              planned ride, including date, location, mileage, duration, effort,
+              and notes.
+            </li>
+            <li>
+              Use it when the location can be resolved to coordinates and paired
+              with public conditions such as forecast summary, temperature, and
+              wind.
+            </li>
+            <li>
+              Use it when the workflow benefits from a confirmation step before
+              saving normalized or enriched details.
+            </li>
+            <li>
+              Use it when entries need to appear later in a saved-rides list,
+              history view, export, or portfolio demonstration.
+            </li>
+          </ul>
+
+          <h3 id="when-not-to-use">When not to use</h3>
+          <ul class="usa-list">
+            <li>
+              Do not use it for live turn-by-turn navigation, emergency
+              reporting, or safety-critical ride decisions.
+            </li>
+            <li>
+              Do not use it when a single lightweight note or checklist would be
+              enough and weather or location enrichment would add unnecessary
+              friction.
+            </li>
+            <li>
+              Do not require it when riders need to browse general route ideas,
+              compare maps, or inspect saved rides without creating a new entry.
+            </li>
+            <li>
+              Do not collect precise private location details unless the product
+              has appropriate user authentication, retention rules, and privacy
+              language in place.
+            </li>
+          </ul>
+
+          <h2 id="content-guidance">Content guidance</h2>
+          <p>
+            Ask for only the details needed to make a ride entry useful later.
+            Keep required fields focused on facts that support comparison and
+            retrieval. Keep subjective reflections optional.
+          </p>
+          <ul class="usa-list">
+            <li>
+              Group date and starting location under a clear "When and where"
+              legend.
+            </li>
+            <li>
+              Use plain labels such as "Distance in miles" and "Duration in
+              minutes" instead of abbreviations.
+            </li>
+            <li>
+              Offer a small effort scale with familiar words: easy, moderate,
+              and hard.
+            </li>
+            <li>
+              Separate weather notes from ride notes so rider observations do
+              not get mixed with route memories.
+            </li>
+            <li>
+              Show weather data as supporting context, not as a replacement for
+              rider judgment or field observations.
+            </li>
+          </ul>
+
+          <h2 id="validation-guidance">Validation guidance</h2>
+          <p>
+            Validate early enough to prevent unusable entries, but do not block
+            the rider because a third-party lookup is temporarily unavailable.
+          </p>
+          <ul class="usa-list">
+            <li>
+              Mark required fields visibly and connect each required control to
+              native HTML validation with <code>required</code>,
+              <code>min</code>, <code>step</code>, <code>pattern</code>, or the
+              relevant input type.
+            </li>
+            <li>
+              Place a validation summary before the form groups and move focus
+              to it when submission fails.
+            </li>
+            <li>
+              Link each validation-summary item to the field that needs
+              attention.
+            </li>
+            <li>
+              Treat address and weather lookup failures as recoverable states:
+              explain the issue, preserve entered values, and allow the rider to
+              edit or continue where appropriate.
+            </li>
+            <li>
+              Normalize data in the review step so riders can confirm the
+              address label, weather summary, and activity values before saving.
+            </li>
+          </ul>
+
+          <h2 id="accessibility-notes">Accessibility notes</h2>
+          <ul class="usa-list">
+            <li>
+              Use semantic <code>fieldset</code> and <code>legend</code>
+              elements for each related field group.
+            </li>
+            <li>
+              Keep status messages in polite live regions for background address
+              and weather lookups.
+            </li>
+            <li>
+              Use <code>role="alert"</code> for blocking validation errors and
+              save failures that need immediate attention.
+            </li>
+            <li>
+              Give form headings <code>tabindex="-1"</code> when scripts move
+              focus to a new step such as review mode.
+            </li>
+            <li>
+              Ensure labels, hints, and error text are programmatically tied to
+              their controls.
+            </li>
+            <li>
+              Preserve keyboard order from form entry to review, edit, and save.
+            </li>
+          </ul>
+
+          <h2 id="implementation-notes">Implementation notes</h2>
+          <p>
+            Build the pattern as a progressive form first, then enhance it with
+            address lookup, weather lookup, review, and persistence. The current
+            implementation lives in <code>src/pages/journal.astro</code> and
+            uses Amplify client calls from <code>src/lib/amplifyClient.ts</code>.
+          </p>
+          <pre><code class="language-html">&lt;form class="usa-form usa-form--large" novalidate data-journal-form&gt;
+  &lt;div class="usa-alert usa-alert--error" role="alert" tabindex="-1" hidden&gt;
+    &lt;div class="usa-alert__body"&gt;
+      &lt;h2 class="usa-alert__heading"&gt;Correct the highlighted fields.&lt;/h2&gt;
+      &lt;ul class="usa-list" id="journal-validation-list"&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;fieldset class="usa-fieldset"&gt;
+    &lt;legend class="usa-legend usa-legend--large"&gt;When and where&lt;/legend&gt;
+    &lt;label class="usa-label" for="ride-date"&gt;Ride date&lt;/label&gt;
+    &lt;input class="usa-input" id="ride-date" name="ride-date" type="date" required /&gt;
+  &lt;/fieldset&gt;
+
+  &lt;button class="usa-button" type="submit"&gt;Continue&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+          <ul class="usa-list">
+            <li>
+              Keep weather and geocoding values in hidden inputs only after the
+              rider-provided address has been resolved.
+            </li>
+            <li>
+              Do not save generated lookup data without also saving the
+              human-readable source or status shown to the rider.
+            </li>
+            <li>
+              Keep generated sandbox outputs and local credentials out of git.
+            </li>
+            <li>
+              Before release, test the form with keyboard navigation, browser
+              zoom, screen-reader announcements, failed lookups, and failed save
+              states.
+            </li>
+          </ul>
         </div>
       </div>
     </div>
