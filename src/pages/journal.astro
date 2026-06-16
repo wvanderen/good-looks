@@ -425,6 +425,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
             <div
               class="usa-alert margin-top-4"
               data-save-status
+              tabindex="-1"
               hidden
             >
               <div class="usa-alert__body">
@@ -807,7 +808,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
       };
 
-      const setSaveStatus = (variant, heading, message) => {
+      const setSaveStatus = (variant, heading, message, shouldFocus = false) => {
         if (!saveStatus || !saveStatusHeading || !saveStatusMessage) {
           return;
         }
@@ -829,6 +830,10 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
 
         saveStatus.removeAttribute("hidden");
+
+        if (shouldFocus && saveStatus instanceof HTMLElement) {
+          saveStatus.focus();
+        }
       };
 
       const clearSaveStatus = () => {
@@ -1191,13 +1196,14 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
             "success",
             "Ride entry saved",
             "Your ride entry was saved and is ready for the saved rides list.",
+            true,
           );
         } catch (error) {
           const message =
             error instanceof Error
               ? error.message
               : "Ride entry could not be saved. Try again in a moment.";
-          setSaveStatus("error", "Ride entry was not saved", message);
+          setSaveStatus("error", "Ride entry was not saved", message, true);
         } finally {
           setSaveLoading(false);
         }
