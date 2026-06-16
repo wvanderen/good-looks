@@ -40,6 +40,30 @@ The first releasable version includes:
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [A11Y_CHECKLIST.md](A11Y_CHECKLIST.md)
 
+## Accessibility QA Snapshot
+
+Latest recorded pass: 2026-06-16 against built Astro preview at
+`http://127.0.0.1:4322/`.
+
+- Lighthouse accessibility score: 95 on the home page.
+- axe-core 4.11.4:
+  - Home: 1 serious `color-contrast` violation on the sample control hint.
+  - Journal form: 3 serious `color-contrast` violations on USWDS hint text.
+  - Journal review/save state: 0 violations after successful lookup and review.
+  - Saved rides: 0 violations.
+  - Docs: 1 moderate `landmark-complementary-is-top-level` violation on the
+    nested guidance `aside`.
+- Keyboard checks passed for skip link, primary navigation, journal fields,
+  validation-summary focus, review heading focus, Save/Edit reachability, and
+  saved-rides navigation. A follow-up is filed to move focus to the save result
+  status after save success or failure.
+- VoiceOver/AX proxy checks confirmed page titles, headings, navigation names,
+  field labels, fieldset names, validation alert, live-region statuses, review
+  definition-list structure, and saved ride headings are exposed to assistive
+  technology.
+
+Follow-up fixes are tracked in `td`: `td-fa9a3c`, `td-dc0209`, and `td-269ce9`.
+
 ## Local Setup
 
 Install dependencies:
