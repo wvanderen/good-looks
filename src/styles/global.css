@@ -45,6 +45,52 @@ body {
   margin-top: 1.5rem;
 }
 
+.app-conditions-panel {
+  background-color: #fff;
+  border: 1px solid #dfe1e2;
+  border-left: 0.5rem solid #00bde3;
+  max-width: 34rem;
+  padding: 1rem;
+}
+
+.app-conditions-panel__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.app-conditions-panel__tag {
+  margin-right: 0;
+}
+
+.app-conditions-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin-bottom: 0;
+  margin-top: 1rem;
+}
+
+.app-conditions-grid[hidden] {
+  display: none;
+}
+
+.app-conditions-grid dt {
+  color: #565c65;
+  font-size: 0.87rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.app-conditions-grid dd {
+  font-size: 1.06rem;
+  font-weight: 700;
+  margin: 0.25rem 0 0;
+}
+
 .app-review-list {
   border-top: 1px solid #dfe1e2;
   margin-top: 1.5rem;

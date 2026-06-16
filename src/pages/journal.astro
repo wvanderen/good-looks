@@ -216,6 +216,12 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
                 type="hidden"
                 data-weather-source
               />
+              <input
+                id="weather-condition"
+                name="weather-condition"
+                type="hidden"
+                data-weather-condition
+              />
 
               <div
                 class="usa-alert usa-alert--info usa-alert--slim margin-top-3"
@@ -239,6 +245,68 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
                   <p class="usa-alert__text" data-weather-lookup-message></p>
                 </div>
               </div>
+
+              <section
+                class="app-conditions-panel margin-top-3"
+                aria-labelledby="conditions-panel-heading"
+                data-conditions-panel
+              >
+                <div class="app-conditions-panel__header">
+                  <h3 id="conditions-panel-heading" class="margin-y-0">
+                    Ride conditions
+                  </h3>
+                  <span
+                    class="usa-tag app-conditions-panel__tag"
+                    data-weather-condition-label
+                    hidden
+                  ></span>
+                </div>
+                <div
+                  class="usa-alert usa-alert--info usa-alert--slim margin-top-2"
+                  data-weather-empty-state
+                >
+                  <div class="usa-alert__body">
+                    <p class="usa-alert__text" data-weather-empty-message>
+                      Complete the starting address to load public weather data.
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="usa-alert usa-alert--error margin-top-2"
+                  data-weather-error-state
+                  role="alert"
+                  hidden
+                >
+                  <div class="usa-alert__body">
+                    <h4 class="usa-alert__heading">Weather could not load</h4>
+                    <p class="usa-alert__text" data-weather-error-message>
+                      Try again in a moment or continue without a forecast.
+                    </p>
+                  </div>
+                </div>
+                <dl
+                  class="app-conditions-grid"
+                  data-weather-summary-panel
+                  hidden
+                >
+                  <div>
+                    <dt>Temperature</dt>
+                    <dd data-weather-panel-temperature>Unavailable</dd>
+                  </div>
+                  <div>
+                    <dt>Wind</dt>
+                    <dd data-weather-panel-wind>Unavailable</dd>
+                  </div>
+                  <div>
+                    <dt>Forecast</dt>
+                    <dd data-weather-panel-summary>Unavailable</dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd data-weather-panel-source>Unavailable</dd>
+                  </div>
+                </dl>
+              </section>
             </fieldset>
 
             <fieldset class="usa-fieldset margin-top-4">
@@ -429,6 +497,37 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         "[data-weather-precipitation]",
       );
       const weatherSourceInput = journalForm.querySelector("[data-weather-source]");
+      const weatherConditionInput = journalForm.querySelector(
+        "[data-weather-condition]",
+      );
+      const weatherEmptyState = journalForm.querySelector(
+        "[data-weather-empty-state]",
+      );
+      const weatherEmptyMessage = journalForm.querySelector(
+        "[data-weather-empty-message]",
+      );
+      const weatherErrorState = journalForm.querySelector(
+        "[data-weather-error-state]",
+      );
+      const weatherErrorMessage = journalForm.querySelector(
+        "[data-weather-error-message]",
+      );
+      const weatherSummaryPanel = journalForm.querySelector(
+        "[data-weather-summary-panel]",
+      );
+      const weatherConditionLabel = journalForm.querySelector(
+        "[data-weather-condition-label]",
+      );
+      const weatherPanelTemperature = journalForm.querySelector(
+        "[data-weather-panel-temperature]",
+      );
+      const weatherPanelWind = journalForm.querySelector("[data-weather-panel-wind]");
+      const weatherPanelSummary = journalForm.querySelector(
+        "[data-weather-panel-summary]",
+      );
+      const weatherPanelSource = journalForm.querySelector(
+        "[data-weather-panel-source]",
+      );
       const formControls = Array.from(
         journalForm.querySelectorAll("input, select, textarea"),
       ).filter(
@@ -472,6 +571,14 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         "address-state",
         "address-zip",
       ]);
+      const addressLookupFieldNames = [
+        "street-address",
+        "address-city",
+        "address-state",
+        "address-zip",
+      ];
+      let addressLookupTimer = 0;
+      let lastRequestedAddress = "";
 
       const originalDescriptions = new Map(
         formControls.map((control) => [
@@ -613,6 +720,73 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         }
       };
 
+      const conditionLabels = new Map([
+        ["favorable", "Favorable"],
+        ["watch_wind", "Watch wind"],
+        ["wet", "Wet roads"],
+        ["hot", "Hot ride"],
+        ["cold", "Cold ride"],
+        ["unknown", "Unknown"],
+      ]);
+
+      const setWeatherPanelEmpty = (
+        message = "Complete the starting address to load public weather data.",
+      ) => {
+        weatherEmptyState?.removeAttribute("hidden");
+        weatherErrorState?.setAttribute("hidden", "");
+        weatherSummaryPanel?.setAttribute("hidden", "");
+        weatherConditionLabel?.setAttribute("hidden", "");
+
+        if (weatherEmptyMessage) {
+          weatherEmptyMessage.textContent = message;
+        }
+      };
+
+      const setWeatherPanelError = (message) => {
+        weatherEmptyState?.setAttribute("hidden", "");
+        weatherErrorState?.removeAttribute("hidden");
+        weatherSummaryPanel?.setAttribute("hidden", "");
+        weatherConditionLabel?.setAttribute("hidden", "");
+
+        if (weatherErrorMessage) {
+          weatherErrorMessage.textContent = message;
+        }
+      };
+
+      const setWeatherPanelSummary = ({
+        temperature,
+        wind,
+        summary,
+        source,
+        conditionLabel,
+      }) => {
+        weatherEmptyState?.setAttribute("hidden", "");
+        weatherErrorState?.setAttribute("hidden", "");
+        weatherSummaryPanel?.removeAttribute("hidden");
+
+        if (weatherPanelTemperature) {
+          weatherPanelTemperature.textContent = temperature || "Unavailable";
+        }
+
+        if (weatherPanelWind) {
+          weatherPanelWind.textContent = wind || "Unavailable";
+        }
+
+        if (weatherPanelSummary) {
+          weatherPanelSummary.textContent = summary || "Unavailable";
+        }
+
+        if (weatherPanelSource) {
+          weatherPanelSource.textContent = source || "Unavailable";
+        }
+
+        if (weatherConditionLabel) {
+          weatherConditionLabel.textContent =
+            conditionLabels.get(conditionLabel) || "Unknown";
+          weatherConditionLabel.removeAttribute("hidden");
+        }
+      };
+
       const setLookupLoading = (isLoading) => {
         if (continueRideButton instanceof HTMLButtonElement) {
           continueRideButton.disabled = isLoading;
@@ -675,6 +849,8 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         setHiddenValue(weatherWindInput, "");
         setHiddenValue(weatherPrecipitationInput, "");
         setHiddenValue(weatherSourceInput, "");
+        setHiddenValue(weatherConditionInput, "");
+        setWeatherPanelEmpty();
       };
 
       const clearAddressLookupResult = () => {
@@ -693,6 +869,18 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ]
           .filter(Boolean)
           .join(", ");
+
+      const isAddressReadyForLookup = () =>
+        addressLookupFieldNames.every((name) => {
+          const control = getControl(name);
+
+          return (
+            (control instanceof HTMLInputElement ||
+              control instanceof HTMLSelectElement) &&
+            control.value.trim() &&
+            control.validity.valid
+          );
+        });
 
       const parseLookupPayload = (payload) => {
         if (typeof payload !== "string") {
@@ -717,6 +905,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       const lookupAddress = async () => {
         clearAddressLookupResult();
         setAddressLookupStatus("info", "Looking up the starting address...");
+        setWeatherPanelEmpty("Loading public weather data...");
         setLookupLoading(true);
 
         try {
@@ -782,9 +971,54 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           ? `${period.precipitationChance}% chance`
           : "";
 
+      const deriveConditionLabelFromForecast = ({
+        summary,
+        temperature,
+        wind,
+        precipitation,
+      }) => {
+        const weatherText = [summary, temperature, wind, precipitation]
+          .join(" ")
+          .toLowerCase();
+        const temperatureValue = Number.parseFloat(temperature);
+        const windMatch = wind.match(/\d+/);
+        const windValue = windMatch ? Number(windMatch[0]) : NaN;
+
+        if (
+          weatherText.includes("rain") ||
+          weatherText.includes("shower") ||
+          weatherText.includes("thunderstorm") ||
+          weatherText.includes("snow")
+        ) {
+          return "wet";
+        }
+
+        if (
+          weatherText.includes("wind") ||
+          (Number.isFinite(windValue) && windValue >= 15)
+        ) {
+          return "watch_wind";
+        }
+
+        if (Number.isFinite(temperatureValue) && temperatureValue >= 85) {
+          return "hot";
+        }
+
+        if (Number.isFinite(temperatureValue) && temperatureValue <= 40) {
+          return "cold";
+        }
+
+        if (summary) {
+          return "favorable";
+        }
+
+        return "unknown";
+      };
+
       const lookupWeatherForecast = async () => {
         clearWeatherLookupResult();
         setWeatherLookupStatus("info", "Loading the nearest NWS forecast...");
+        setWeatherPanelEmpty("Loading public weather data...");
         setLookupLoading(true);
 
         try {
@@ -820,12 +1054,26 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           const precipitation = formatWeatherPrecipitation(period);
           const source =
             typeof data.source === "string" ? data.source : "National Weather Service";
+          const conditionLabel = deriveConditionLabelFromForecast({
+            summary,
+            temperature,
+            wind,
+            precipitation,
+          });
 
           setHiddenValue(weatherSummaryInput, summary);
           setHiddenValue(weatherTemperatureInput, temperature);
           setHiddenValue(weatherWindInput, wind);
           setHiddenValue(weatherPrecipitationInput, precipitation);
           setHiddenValue(weatherSourceInput, source);
+          setHiddenValue(weatherConditionInput, conditionLabel);
+          setWeatherPanelSummary({
+            temperature,
+            wind,
+            summary,
+            source,
+            conditionLabel,
+          });
           setWeatherLookupStatus(
             "success",
             `NWS forecast loaded: ${[temperature, summary].filter(Boolean).join(", ")}`,
@@ -836,9 +1084,38 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
               ? error.message
               : "Weather forecast is unavailable. Try again in a moment.";
           setWeatherLookupStatus("warning", message);
+          setWeatherPanelError(message);
         } finally {
           setLookupLoading(false);
         }
+      };
+
+      const lookupRideConditions = async () => {
+        const currentAddress = buildOneLineAddress();
+
+        if (!isAddressReadyForLookup() || currentAddress === lastRequestedAddress) {
+          return;
+        }
+
+        lastRequestedAddress = currentAddress;
+        const didLookupAddress = await lookupAddress();
+
+        if (didLookupAddress) {
+          await lookupWeatherForecast();
+        }
+      };
+
+      const scheduleRideConditionsLookup = () => {
+        window.clearTimeout(addressLookupTimer);
+
+        if (!isAddressReadyForLookup()) {
+          lastRequestedAddress = "";
+          return;
+        }
+
+        addressLookupTimer = window.setTimeout(() => {
+          void lookupRideConditions();
+        }, 600);
       };
 
       const getEffortValue = () => {
@@ -865,40 +1142,14 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         return "";
       };
 
-      const deriveConditionLabel = () => {
-        const weatherText = [
-          getTextValue("weather-summary"),
-          getTextValue("weather-temperature"),
-          getTextValue("weather-wind"),
-          getTextValue("weather-precipitation"),
-        ]
-          .join(" ")
-          .toLowerCase();
-
-        const temperature = Number.parseFloat(getTextValue("weather-temperature"));
-
-        if (weatherText.includes("rain") || weatherText.includes("shower")) {
-          return "wet";
-        }
-
-        if (weatherText.includes("wind")) {
-          return "watch_wind";
-        }
-
-        if (Number.isFinite(temperature) && temperature >= 85) {
-          return "hot";
-        }
-
-        if (Number.isFinite(temperature) && temperature <= 40) {
-          return "cold";
-        }
-
-        if (getTextValue("weather-summary")) {
-          return "favorable";
-        }
-
-        return "unknown";
-      };
+      const deriveConditionLabel = () =>
+        getTextValue("weather-condition") ||
+        deriveConditionLabelFromForecast({
+          summary: getTextValue("weather-summary"),
+          temperature: getTextValue("weather-temperature"),
+          wind: getTextValue("weather-wind"),
+          precipitation: getTextValue("weather-precipitation"),
+        });
 
       const buildRideEntryInput = () => ({
         rideDate: getTextValue("ride-date"),
@@ -1004,6 +1255,10 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         ["Forecast", getTextValue("weather-summary") || "Unavailable"],
         ["Temperature", getTextValue("weather-temperature") || "Unavailable"],
         ["Wind", getTextValue("weather-wind") || "Unavailable"],
+        [
+          "Condition label",
+          conditionLabels.get(deriveConditionLabel()) || "Unknown",
+        ],
         [
           "Precipitation",
           getTextValue("weather-precipitation") || "Unavailable",
@@ -1152,6 +1407,7 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
             clearAddressLookupResult();
             clearAddressLookupStatus();
             clearWeatherLookupStatus();
+            scheduleRideConditionsLookup();
           }
         }
       });
@@ -1167,9 +1423,12 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
             clearAddressLookupResult();
             clearAddressLookupStatus();
             clearWeatherLookupStatus();
+            scheduleRideConditionsLookup();
           }
         }
       });
+
+      scheduleRideConditionsLookup();
 
       editRideButton?.addEventListener("click", () => {
         showForm();
