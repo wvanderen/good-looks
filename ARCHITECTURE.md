@@ -1,5 +1,10 @@
 # Architecture
 
+Good Looks, formally presented as the National Administration of Good Looks on
+the homepage, is intentionally styled like a public-service interface. The
+product remains a compact ride journal; the name gives the portfolio piece a
+clearer point of view while keeping the MVP scope focused.
+
 ## Stack
 
 - Astro for the site shell, routing, documentation pages, and mostly static rendering.
@@ -25,7 +30,7 @@
 | --- | --- |
 | `/` | Project overview and entry point. |
 | `/journal` | Create, enrich, review, and save a ride journal entry. |
-| `/rides` | List saved ride entries from Amplify. |
+| `/rides` | List, edit, and delete saved ride entries from Amplify. |
 | `/docs` | Ride journal usage guidance, accessibility notes, and implementation notes. |
 
 ## Data Flow

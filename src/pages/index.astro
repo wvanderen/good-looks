@@ -3,27 +3,28 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 ---
 
 <UswdsLayout
-  title="Ride Conditions"
-  description="Accessible bike ride journal scaffolded with Astro and USWDS."
+  title="Good Looks | National Administration of Good Looks"
+  description="Good Looks is an accessible, government-styled bike ride journal built with Astro, USWDS, and AWS Amplify."
 >
   <section class="usa-section app-intro">
     <div class="grid-container">
       <div class="grid-row grid-gap">
         <div class="tablet:grid-col-7">
-          <p class="usa-intro">Ride journal MVP</p>
-          <h1>Log rides with weather-aware context.</h1>
+          <p class="usa-intro">National Administration of Good Looks</p>
+          <h1>Good Looks</h1>
           <p>
-            Ride Conditions will help cyclists capture ride details, record a
-            location, and pair each entry with public weather data.
+            A government-styled ride journal for capturing bike rides, pairing
+            each entry with public weather data, and saving the record for later.
           </p>
-          <a class="usa-button" href="#sample-control">Start a journal entry</a>
+          <a class="usa-button" href="/journal/">Start a journal entry</a>
+          <a class="usa-button usa-button--outline" href="/rides/">Manage saved rides</a>
         </div>
         <div class="tablet:grid-col-5 app-summary" aria-labelledby="status-heading">
-          <h2 id="status-heading">Foundation status</h2>
+          <h2 id="status-heading">MVP status</h2>
           <ul class="usa-list">
-            <li>Astro shell is running.</li>
-            <li>USWDS styles are loaded globally.</li>
-            <li>USWDS JavaScript bundle is wired for future components.</li>
+            <li>Accessible USWDS journal flow is implemented.</li>
+            <li>Address lookup and NWS forecast enrichment are wired through Amplify.</li>
+            <li>Saved ride entries persist to the Amplify data model.</li>
           </ul>
         </div>
       </div>
@@ -32,24 +33,15 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 
   <section class="usa-section usa-section--light">
     <div class="grid-container">
-      <form class="usa-form app-form-preview">
-        <fieldset class="usa-fieldset">
-          <legend class="usa-legend usa-legend--large">Sample ride control</legend>
-          <label class="usa-label" for="sample-control">Ride location</label>
-          <div class="usa-hint" id="sample-control-hint">
-            This placeholder verifies USWDS form styling in Astro.
-          </div>
-          <input
-            class="usa-input"
-            id="sample-control"
-            name="sample-control"
-            type="text"
-            aria-describedby="sample-control-hint"
-            placeholder="123 Main St, Springfield, IL"
-          />
-          <button class="usa-button margin-top-3" type="button">Check conditions</button>
-        </fieldset>
-      </form>
+      <div class="app-form-preview">
+        <h2>Use the working journal flow</h2>
+        <p>
+          Address lookup, weather enrichment, review, save, edit, and delete all
+          live in the journal and saved-rides pages so demo data can be managed
+          in one place.
+        </p>
+        <a class="usa-button" href="/journal/">Open journal</a>
+      </div>
     </div>
   </section>
 </UswdsLayout>

@@ -3,8 +3,8 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
 ---
 
 <UswdsLayout
-  title="Saved rides | Ride Conditions"
-  description="Review saved ride entries in Ride Conditions."
+  title="Saved rides | Good Looks"
+  description="Review saved ride entries in Good Looks."
 >
   <section class="usa-section app-intro">
     <div class="grid-container">
@@ -58,6 +58,18 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
           </div>
 
           <div
+            class="usa-alert margin-top-4"
+            data-rides-action-status
+            tabindex="-1"
+            hidden
+          >
+            <div class="usa-alert__body">
+              <h3 class="usa-alert__heading" data-rides-action-heading></h3>
+              <p class="usa-alert__text" data-rides-action-message></p>
+            </div>
+          </div>
+
+          <div
             class="usa-alert usa-alert--info margin-top-4"
             data-rides-empty
             hidden
@@ -84,6 +96,13 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
     const loadingState = document.querySelector("[data-rides-loading]");
     const errorState = document.querySelector("[data-rides-error]");
     const emptyState = document.querySelector("[data-rides-empty]");
+    const actionStatus = document.querySelector("[data-rides-action-status]");
+    const actionStatusHeading = document.querySelector(
+      "[data-rides-action-heading]",
+    );
+    const actionStatusMessage = document.querySelector(
+      "[data-rides-action-message]",
+    );
 
     const effortLabels = new Map([
       ["easy", "Easy"],
@@ -96,6 +115,50 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
         element?.setAttribute("hidden", "");
       } else {
         element?.removeAttribute("hidden");
+      }
+    };
+
+    const setActionStatus = (
+      variant: "success" | "error" | "info",
+      heading: string,
+      message: string,
+      shouldFocus = true,
+    ) => {
+      if (!actionStatus || !actionStatusHeading || !actionStatusMessage) {
+        return;
+      }
+
+      actionStatus.classList.remove(
+        "usa-alert--error",
+        "usa-alert--info",
+        "usa-alert--success",
+      );
+      actionStatus.classList.add(`usa-alert--${variant}`);
+      actionStatusHeading.textContent = heading;
+      actionStatusMessage.textContent = message;
+      actionStatus.setAttribute("role", variant === "error" ? "alert" : "status");
+      actionStatus.setAttribute(
+        "aria-live",
+        variant === "error" ? "assertive" : "polite",
+      );
+      actionStatus.removeAttribute("hidden");
+
+      if (shouldFocus && actionStatus instanceof HTMLElement) {
+        actionStatus.focus();
+      }
+    };
+
+    const clearActionStatus = () => {
+      actionStatus?.setAttribute("hidden", "");
+      actionStatus?.removeAttribute("role");
+      actionStatus?.removeAttribute("aria-live");
+
+      if (actionStatusHeading) {
+        actionStatusHeading.textContent = "";
+      }
+
+      if (actionStatusMessage) {
+        actionStatusMessage.textContent = "";
       }
     };
 
@@ -175,10 +238,272 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       return item;
     };
 
+    const createField = (
+      labelText: string,
+      control: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+    ) => {
+      const wrapper = document.createElement("div");
+      const label = document.createElement("label");
+
+      wrapper.className = "usa-form-group";
+      label.className = "usa-label";
+      label.htmlFor = control.id;
+      label.textContent = labelText;
+      wrapper.append(label, control);
+
+      return wrapper;
+    };
+
+    const setCardBusy = (card: HTMLElement, isBusy: boolean) => {
+      card.querySelectorAll("button, input, select, textarea").forEach((control) => {
+        if (
+          control instanceof HTMLButtonElement ||
+          control instanceof HTMLInputElement ||
+          control instanceof HTMLSelectElement ||
+          control instanceof HTMLTextAreaElement
+        ) {
+          control.disabled = isBusy;
+        }
+      });
+    };
+
+    const deleteRideEntry = async (entry: { id?: string; addressLabel?: string | null }) => {
+      if (!entry.id) {
+        setActionStatus("error", "Ride entry was not deleted", "This ride entry is missing an ID.");
+        return;
+      }
+
+      const label = entry.addressLabel || "this ride";
+      const shouldDelete = window.confirm(
+        `Delete ${label}? This removes the saved ride entry from the demo database.`,
+      );
+
+      if (!shouldDelete) {
+        return;
+      }
+
+      clearActionStatus();
+
+      try {
+        const response = await amplifyClient.models.RideEntry.delete({ id: entry.id });
+
+        if (response.errors?.length) {
+          throw new Error("Ride entry could not be deleted. Try again in a moment.");
+        }
+
+        setActionStatus("success", "Ride entry deleted", "The saved ride entry was removed.");
+        await loadRideEntries(false);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Ride entry could not be deleted. Try again in a moment.";
+        setActionStatus("error", "Ride entry was not deleted", message);
+      }
+    };
+
+    const renderEditForm = (
+      card: HTMLElement,
+      entry: {
+        id?: string;
+        rideDate?: string | null;
+        addressLabel?: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
+        distanceMiles?: number | null;
+        durationMinutes?: number | null;
+        effort?: string | null;
+        rideNotes?: string | null;
+        weatherNotes?: string | null;
+      },
+      renderView: () => void,
+    ) => {
+      const form = document.createElement("form");
+      const heading = document.createElement("h4");
+      const actions = document.createElement("div");
+      const saveButton = document.createElement("button");
+      const cancelButton = document.createElement("button");
+
+      const idPrefix = `ride-${entry.id || Math.random().toString(36).slice(2)}`;
+      const rideDate = document.createElement("input");
+      const addressLabel = document.createElement("input");
+      const latitude = document.createElement("input");
+      const longitude = document.createElement("input");
+      const distanceMiles = document.createElement("input");
+      const durationMinutes = document.createElement("input");
+      const effort = document.createElement("select");
+      const rideNotes = document.createElement("textarea");
+      const weatherNotes = document.createElement("textarea");
+
+      form.className = "usa-form usa-form--large app-ride-edit-form";
+      heading.className = "usa-card__heading";
+      heading.textContent = "Edit saved ride";
+
+      rideDate.className = "usa-input";
+      rideDate.id = `${idPrefix}-date`;
+      rideDate.name = "rideDate";
+      rideDate.type = "date";
+      rideDate.required = true;
+      rideDate.value = entry.rideDate || "";
+
+      addressLabel.className = "usa-input";
+      addressLabel.id = `${idPrefix}-address`;
+      addressLabel.name = "addressLabel";
+      addressLabel.type = "text";
+      addressLabel.required = true;
+      addressLabel.value = entry.addressLabel || "";
+
+      latitude.className = "usa-input usa-input--medium";
+      latitude.id = `${idPrefix}-latitude`;
+      latitude.name = "latitude";
+      latitude.type = "number";
+      latitude.min = "-90";
+      latitude.max = "90";
+      latitude.step = "any";
+      latitude.required = true;
+      latitude.value = typeof entry.latitude === "number" ? String(entry.latitude) : "";
+
+      longitude.className = "usa-input usa-input--medium";
+      longitude.id = `${idPrefix}-longitude`;
+      longitude.name = "longitude";
+      longitude.type = "number";
+      longitude.min = "-180";
+      longitude.max = "180";
+      longitude.step = "any";
+      longitude.required = true;
+      longitude.value =
+        typeof entry.longitude === "number" ? String(entry.longitude) : "";
+
+      distanceMiles.className = "usa-input usa-input--small";
+      distanceMiles.id = `${idPrefix}-distance`;
+      distanceMiles.name = "distanceMiles";
+      distanceMiles.type = "number";
+      distanceMiles.min = "0";
+      distanceMiles.step = "0.1";
+      distanceMiles.required = true;
+      distanceMiles.value =
+        typeof entry.distanceMiles === "number" ? String(entry.distanceMiles) : "";
+
+      durationMinutes.className = "usa-input usa-input--small";
+      durationMinutes.id = `${idPrefix}-duration`;
+      durationMinutes.name = "durationMinutes";
+      durationMinutes.type = "number";
+      durationMinutes.min = "1";
+      durationMinutes.step = "1";
+      durationMinutes.value =
+        typeof entry.durationMinutes === "number"
+          ? String(entry.durationMinutes)
+          : "";
+
+      effort.className = "usa-select";
+      effort.id = `${idPrefix}-effort`;
+      effort.name = "effort";
+      [
+        ["", "- Select -"],
+        ["easy", "Easy"],
+        ["moderate", "Moderate"],
+        ["hard", "Hard"],
+      ].forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        effort.append(option);
+      });
+      effort.value = entry.effort || "";
+
+      rideNotes.className = "usa-textarea";
+      rideNotes.id = `${idPrefix}-ride-notes`;
+      rideNotes.name = "rideNotes";
+      rideNotes.value = entry.rideNotes || "";
+
+      weatherNotes.className = "usa-textarea";
+      weatherNotes.id = `${idPrefix}-weather-notes`;
+      weatherNotes.name = "weatherNotes";
+      weatherNotes.value = entry.weatherNotes || "";
+
+      actions.className = "app-ride-actions margin-top-3";
+      saveButton.className = "usa-button";
+      saveButton.type = "submit";
+      saveButton.textContent = "Save changes";
+      cancelButton.className = "usa-button usa-button--outline";
+      cancelButton.type = "button";
+      cancelButton.textContent = "Cancel";
+      actions.append(saveButton, cancelButton);
+
+      form.append(
+        heading,
+        createField("Ride date", rideDate),
+        createField("Address label", addressLabel),
+        createField("Latitude", latitude),
+        createField("Longitude", longitude),
+        createField("Distance in miles", distanceMiles),
+        createField("Duration in minutes", durationMinutes),
+        createField("Effort", effort),
+        createField("Ride notes", rideNotes),
+        createField("Weather notes", weatherNotes),
+        actions,
+      );
+
+      cancelButton.addEventListener("click", () => {
+        renderView();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!entry.id) {
+          setActionStatus("error", "Ride entry was not updated", "This ride entry is missing an ID.");
+          return;
+        }
+
+        if (!form.reportValidity()) {
+          return;
+        }
+
+        setCardBusy(card, true);
+        clearActionStatus();
+
+        try {
+          const response = await amplifyClient.models.RideEntry.update({
+            id: entry.id,
+            rideDate: rideDate.value,
+            addressLabel: addressLabel.value.trim(),
+            latitude: Number(latitude.value),
+            longitude: Number(longitude.value),
+            distanceMiles: Number(distanceMiles.value),
+            durationMinutes: durationMinutes.value ? Number(durationMinutes.value) : null,
+            effort: effort.value || null,
+            rideNotes: rideNotes.value.trim() || null,
+            weatherNotes: weatherNotes.value.trim() || null,
+          });
+
+          if (response.errors?.length) {
+            throw new Error("Ride entry could not be updated. Try again in a moment.");
+          }
+
+          setActionStatus("success", "Ride entry updated", "The saved ride entry was updated.");
+          await loadRideEntries(false);
+        } catch (error) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Ride entry could not be updated. Try again in a moment.";
+          setActionStatus("error", "Ride entry was not updated", message);
+          setCardBusy(card, false);
+        }
+      });
+
+      card.replaceChildren(form);
+      heading.tabIndex = -1;
+      heading.focus();
+    };
+
     const renderRideEntry = (entry: {
       id?: string;
       rideDate?: string | null;
       addressLabel?: string | null;
+      latitude?: number | null;
+      longitude?: number | null;
       distanceMiles?: number | null;
       effort?: string | null;
       rideNotes?: string | null;
@@ -187,47 +512,73 @@ import UswdsLayout from "../layouts/UswdsLayout.astro";
       weatherTemperature?: string | null;
       windSpeed?: string | null;
       precipitationSummary?: string | null;
+      durationMinutes?: number | null;
     }) => {
       const item = document.createElement("li");
       const card = document.createElement("article");
-      const header = document.createElement("div");
-      const date = document.createElement("p");
-      const address = document.createElement("h3");
-      const metaList = document.createElement("dl");
-      const notes = document.createElement("p");
-      const weather = document.createElement("p");
 
       item.className = "usa-card tablet:grid-col-12";
       card.className = "usa-card__container app-ride-card";
-      header.className = "usa-card__header";
-      date.className = "app-ride-date";
-      address.className = "usa-card__heading";
-      metaList.className = "app-ride-meta";
-      notes.className = "app-ride-notes";
-      weather.className = "app-ride-weather";
 
-      date.textContent = formatDate(entry.rideDate);
-      address.textContent = entry.addressLabel || "Address unavailable";
-      metaList.append(
-        createMetaItem("Distance", formatDistance(entry.distanceMiles)),
-        createMetaItem("Effort", formatEffort(entry.effort)),
-      );
-      notes.textContent = formatNotesPreview(entry.rideNotes, entry.weatherNotes);
-      weather.textContent = formatWeatherSnapshot(entry);
+      const renderView = () => {
+        const header = document.createElement("div");
+        const date = document.createElement("p");
+        const address = document.createElement("h3");
+        const metaList = document.createElement("dl");
+        const notes = document.createElement("p");
+        const weather = document.createElement("p");
+        const actions = document.createElement("div");
+        const editButton = document.createElement("button");
+        const deleteButton = document.createElement("button");
 
-      header.append(date, address);
-      card.append(header, metaList, notes, weather);
+        header.className = "usa-card__header";
+        date.className = "app-ride-date";
+        address.className = "usa-card__heading";
+        metaList.className = "app-ride-meta";
+        notes.className = "app-ride-notes";
+        weather.className = "app-ride-weather";
+        actions.className = "app-ride-actions";
+        editButton.className = "usa-button usa-button--outline";
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        deleteButton.className = "usa-button usa-button--secondary";
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+
+        date.textContent = formatDate(entry.rideDate);
+        address.textContent = entry.addressLabel || "Address unavailable";
+        metaList.append(
+          createMetaItem("Distance", formatDistance(entry.distanceMiles)),
+          createMetaItem("Effort", formatEffort(entry.effort)),
+        );
+        notes.textContent = formatNotesPreview(entry.rideNotes, entry.weatherNotes);
+        weather.textContent = formatWeatherSnapshot(entry);
+
+        editButton.addEventListener("click", () => {
+          clearActionStatus();
+          renderEditForm(card, entry, renderView);
+        });
+        deleteButton.addEventListener("click", () => {
+          void deleteRideEntry(entry);
+        });
+
+        header.append(date, address);
+        actions.append(editButton, deleteButton);
+        card.replaceChildren(header, metaList, notes, weather, actions);
+      };
+
+      renderView();
       item.append(card);
 
       return item;
     };
 
-    const loadRideEntries = async () => {
+    const loadRideEntries = async (showLoading = true) => {
       if (!ridesList) {
         return;
       }
 
-      setHidden(loadingState, false);
+      setHidden(loadingState, !showLoading);
       setHidden(errorState, true);
       setHidden(emptyState, true);
       ridesList.replaceChildren();

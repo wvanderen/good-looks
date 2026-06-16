@@ -2,7 +2,7 @@ import type { Schema } from "../../data/resource";
 
 const NWS_ENDPOINT = "https://api.weather.gov";
 const USER_AGENT =
-  "Ride Conditions portfolio app, https://github.com/openai/codex";
+  "Good Looks portfolio app, https://github.com/openai/codex";
 
 type NwsPointsResponse = {
   properties?: {

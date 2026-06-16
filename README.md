@@ -1,6 +1,6 @@
-# Ride Conditions
+# Good Looks
 
-Ride Conditions is a portfolio-first civic tech project: an accessible bike ride journal and lightweight trip context tool built with Astro, USWDS, and AWS Amplify.
+Good Looks is a portfolio-first civic tech project: an accessible bike ride journal and lightweight trip context tool built with Astro, USWDS, and AWS Amplify. The full title, National Administration of Good Looks, plays on the intentionally government-styled interface while keeping the product itself practical and small.
 
 The project is intentionally small but credible. The MVP centers on a ride journal where a rider can enter an address, capture ride details, see relevant National Weather Service conditions, and save the entry to a lightweight Amplify-backed database. The surrounding documentation site shows how the UI is built, why USWDS patterns were chosen, and how accessibility was tested.
 
@@ -22,7 +22,8 @@ The first releasable version includes:
 - Ride journal entry form.
 - Address lookup flow for ride location.
 - Weather.gov/National Weather Service conditions surfaced near the journal flow.
-- Amplify-backed persistence for saved entries.
+- Amplify-backed persistence for saved entries, including edit and delete controls
+  for cleaning up demo data.
 - USWDS-styled documentation pages for usage guidance and accessibility notes.
 
 ## Working Assumptions
@@ -47,22 +48,22 @@ Latest recorded pass: 2026-06-16 against built Astro preview at
 
 - Lighthouse accessibility score: 95 on the home page.
 - axe-core 4.11.4:
-  - Home: 1 serious `color-contrast` violation on the sample control hint.
-  - Journal form: 3 serious `color-contrast` violations on USWDS hint text.
+  - Home: hint text contrast follow-up was fixed after the recorded run.
+  - Journal form: USWDS hint text contrast follow-up was fixed after the recorded run.
   - Journal review/save state: 0 violations after successful lookup and review.
   - Saved rides: 0 violations.
   - Docs: 0 violations after replacing the nested guidance `aside` with a
     non-landmark grid wrapper.
 - Keyboard checks passed for skip link, primary navigation, journal fields,
   validation-summary focus, review heading focus, Save/Edit reachability, and
-  saved-rides navigation. A follow-up is filed to move focus to the save result
-  status after save success or failure.
+  saved-rides navigation. Save success and failure now move focus to the visible
+  result status.
 - VoiceOver/AX proxy checks confirmed page titles, headings, navigation names,
   field labels, fieldset names, validation alert, live-region statuses, review
   definition-list structure, and saved ride headings are exposed to assistive
   technology.
 
-Follow-up fixes are tracked in `td`: `td-fa9a3c`, `td-dc0209`, and `td-269ce9`.
+Follow-up fixes were closed in `td`: `td-fa9a3c`, `td-dc0209`, and `td-269ce9`.
 
 ## Local Setup
 

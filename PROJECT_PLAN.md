@@ -1,8 +1,8 @@
-# Project Plan: Ride Conditions
+# Project Plan: Good Looks
 
 ## Product Brief
 
-Ride Conditions is a USWDS-forward ride journal for cyclists who think weather matters. A rider records a ride, enters the ride location as an address, and gets public weather context from weather.gov/National Weather Service data. The product should feel like a polished civic-service interface: plainspoken, accessible, structured, and trustworthy.
+Good Looks is a USWDS-forward ride journal for cyclists who think weather matters. A rider records a ride, enters the ride location as an address, and gets public weather context from weather.gov/National Weather Service data. The product should feel like a polished civic-service interface: plainspoken, accessible, structured, and trustworthy.
 
 This is portfolio-first. The project should make it easy to say: "I built an accessible Astro and USWDS app, integrated public government weather data, persisted user-owned ride entries with AWS Amplify, and documented the component patterns and accessibility checks."
 
@@ -68,7 +68,7 @@ Deliverables:
 
 - Address-to-coordinate integration.
 - NWS points lookup and forecast fetch.
-- Ride Conditions panel showing temperature, wind, precipitation/short forecast, and a simple ride condition label.
+- Ride conditions panel showing temperature, wind, precipitation/short forecast, and a simple ride condition label.
 - Loading, empty, and error states using USWDS alerts.
 - API behavior documented.
 

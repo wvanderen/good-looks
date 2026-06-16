@@ -20,7 +20,7 @@ Use this file as the testing record before calling the MVP portfolio-ready.
 - [x] Date input is usable without a mouse.
 - [x] Submit, edit, review, and save actions are reachable by keyboard.
 - [x] Focus moves to meaningful content after validation errors.
-- [ ] Focus moves to meaningful content after save success/failure.
+- [x] Focus moves to meaningful content after save success/failure.
 - [x] No keyboard trap exists in any interactive area.
 
 ## Screen Reader Testing
@@ -45,7 +45,7 @@ Use this file as the testing record before calling the MVP portfolio-ready.
 ## Visual and Content Checks
 
 - [x] Color is not the only way to understand status.
-- [ ] Text contrast passes WCAG AA.
+- [x] Text contrast passes WCAG AA.
 - [ ] Layout works at mobile and desktop widths.
 - [ ] Text does not overlap or truncate in form controls, buttons, cards, or alerts.
 - [x] Loading states reserve enough space to avoid confusing layout shifts.
@@ -62,16 +62,17 @@ Use this file as the testing record before calling the MVP portfolio-ready.
 - Manual tools:
   - Disposable headless Chrome-for-Testing with real Tab/Shift+Tab/Enter key events.
   - Chrome accessibility tree inspection as a VoiceOver/AX proxy for names, roles, headings, field groups, live regions, and review structure.
-- Follow-up tasks filed:
-  - `td-fa9a3c`: Fix USWDS hint text color contrast.
-  - `td-269ce9`: Move focus to save result status after journal save.
+- Follow-up tasks closed:
+  - `td-fa9a3c`: Fixed USWDS hint text color contrast.
+  - `td-dc0209`: Replaced the docs nested complementary landmark.
+  - `td-269ce9`: Moved focus to save result status after journal save.
 
 ## Manual Findings Log
 
 | Date | Tool/Method | Page/Flow | Finding | Resolution |
 | --- | --- | --- | --- | --- |
-| 2026-06-16 | axe-core 4.11.4 CLI | Home | `color-contrast` serious violation on `#sample-control-hint`. | Follow-up filed as `td-fa9a3c`. |
-| 2026-06-16 | axe-core 4.11.4 CLI | Journal form | `color-contrast` serious violations on `form > .usa-hint`, `#weather-notes-hint`, and `#ride-notes-hint`. | Follow-up filed as `td-fa9a3c`. |
+| 2026-06-16 | axe-core 4.11.4 CLI | Home | `color-contrast` serious violation on the former sample control hint. | Fixed in `td-fa9a3c`; the inactive sample control was later replaced with links to the working journal and saved-rides flows. |
+| 2026-06-16 | axe-core 4.11.4 CLI | Journal form | `color-contrast` serious violations on `form > .usa-hint`, `#weather-notes-hint`, and `#ride-notes-hint`. | Fixed in `td-fa9a3c`; global `.usa-hint` color now uses `#3d4551`. |
 | 2026-06-16 | axe-core 4.11.4 injected | Journal review/save step | 0 violations after successful address/weather lookup and review transition. | No follow-up. |
 | 2026-06-16 | axe-core 4.11.4 CLI | Saved rides | 0 violations on initial saved-rides page. | No follow-up. |
 | 2026-06-16 | axe-core 4.11.4 CLI | Docs | Guidance navigation uses a named `nav` without a nested complementary landmark. | Passed after `td-dc0209`. |
@@ -79,7 +80,7 @@ Use this file as the testing record before calling the MVP portfolio-ready.
 | 2026-06-16 | Keyboard | Home | First Tab lands on skip link; Enter scrolls to main content and next control. Primary nav, in-page CTA, sample input, and button are reachable in order. | Passed. |
 | 2026-06-16 | Keyboard | Journal form | Tab order proceeds through skip link, brand/nav, date input, address fields, distance/duration, effort radio group, notes fields, and Continue. Native date input exposes Chrome date-picker controls. | Passed. |
 | 2026-06-16 | Keyboard | Journal validation | Submitting empty form moves focus to `#journal-validation-summary`; each invalid field receives `aria-invalid` and an error reference in `aria-describedby`. | Passed. |
-| 2026-06-16 | Keyboard | Journal review/edit/save | Successful lookup moves focus to `#journal-review-heading`; Save ride entry and Edit details are next in Tab order; Edit returns focus to `#journal-form-heading`. Save result is a live region, but focus does not move to the result. | Follow-up filed as `td-269ce9`. |
+| 2026-06-16 | Keyboard | Journal review/edit/save | Successful lookup moves focus to `#journal-review-heading`; Save ride entry and Edit details are next in Tab order; Edit returns focus to `#journal-form-heading`. Save success and failure move focus to the visible save status. | Fixed in `td-269ce9`. |
 | 2026-06-16 | Keyboard | Saved rides | Skip link, brand/nav, and Add ride are reachable; saved entries have no unexpected focus traps. | Passed. |
 | 2026-06-16 | VoiceOver/AX proxy | All pages | Page titles, primary headings, primary navigation name, form labels, fieldset names, validation alert, live-region statuses, review definition list, and saved ride headings are exposed in the accessibility tree. | Passed with note: run a final human VoiceOver smoke test before public release. |
 
