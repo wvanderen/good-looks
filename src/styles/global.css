@@ -45,6 +45,17 @@ body {
   margin-top: 1.5rem;
 }
 
+.app-effort-fieldset {
+  max-width: 20rem;
+}
+
+.app-effort-options {
+  background-color: #fff;
+  border: 1px solid #dfe1e2;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
 .app-conditions-panel {
   background-color: #fff;
   border: 1px solid #dfe1e2;

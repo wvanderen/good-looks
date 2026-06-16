@@ -148,7 +148,17 @@ Acceptance criteria:
 - Lighthouse accessibility score recorded.
 - Fixes or follow-up tasks are linked.
 
-## P3: Post-MVP Ideas
+## P3: Post-MVP 
+
+### Fast-Follow
+
+- Route mapping and navigation
+- Auth (necessary for this to be more than a demo)
+- Photo upload
+- Distinguishing of planned runs from completed rides. Ability to "start" a ride and access in in-ride dashboard. User won't have notes on how the ride was until the ride is completed.
+
+
+### More Post-MVP Ideas
 
 - Add ride filters by month, distance, effort, or weather condition.
 - Add CSV export.
